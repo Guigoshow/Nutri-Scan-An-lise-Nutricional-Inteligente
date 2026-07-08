@@ -391,6 +391,60 @@
     color: var(--text-muted);
   }
 
+  /* PORTION SELECTOR */
+  .portion-selector {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .portion-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .portion-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .portion-btn {
+    padding: 12px 8px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .portion-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary-light);
+  }
+
+  .portion-btn.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+  }
+
+  .portion-btn-icon {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
   /* HISTORY ITEMS */
   .history-list {
     display: flex;
@@ -681,6 +735,20 @@
     letter-spacing: 2px;
   }
 
+  .portion-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(127, 176, 105, 0.15);
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: auto;
+  }
+
   .macros-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -909,6 +977,10 @@
     .macros-grid {
       grid-template-columns: 1fr;
     }
+
+    .portion-options {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 </head>
@@ -988,6 +1060,25 @@
           </div>
         </div>
 
+        <!-- PORTION SELECTOR -->
+        <div class="portion-selector">
+          <label class="portion-label">🍽️ Tamanho da porção:</label>
+          <div class="portion-options">
+            <button type="button" class="portion-btn" data-portion="pequena">
+              <span class="portion-btn-icon">🥣</span>
+              Pequena
+            </button>
+            <button type="button" class="portion-btn active" data-portion="media">
+              <span class="portion-btn-icon">🍽️</span>
+              Média
+            </button>
+            <button type="button" class="portion-btn" data-portion="grande">
+              <span class="portion-btn-icon">🍱</span>
+              Grande
+            </button>
+          </div>
+        </div>
+
         <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
 
         <div class="spinner" id="spinner">
@@ -1062,7 +1153,7 @@
           </ul>
 
           <p style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
-            <strong>Como funciona:</strong> Tira uma foto da tua refeição e a nossa inteligência artificial analisa os alimentos visíveis, estimando as quantidades e calculando o valor nutricional total.
+            <strong>Como funciona:</strong> Tira uma foto da tua refeição, indica o tamanho da porção e a nossa inteligência artificial analisa os alimentos visíveis, estimando as quantidades e calculando o valor nutricional total.
           </p>
         </div>
       </div>
@@ -1085,13 +1176,24 @@
   const errorBox = document.getElementById('error');
   const historyList = document.getElementById('historyList');
   const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+  const portionBtns = document.querySelectorAll('.portion-btn');
 
   let base64Image = null;
   let mimeType = null;
   let currentAnalysis = null;
+  let selectedPortion = 'media'; // Valor padrão
 
   // Carregar histórico ao iniciar
   document.addEventListener('DOMContentLoaded', loadHistory);
+
+  // Gerir seleção de porção
+  portionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      portionBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedPortion = btn.dataset.portion;
+    });
+  });
 
   function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -1181,7 +1283,11 @@
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Image, mimeType }),
+        body: JSON.stringify({ 
+          imageBase64: base64Image, 
+          mimeType,
+          portion: selectedPortion
+        }),
       });
 
       const data = await res.json();
@@ -1191,7 +1297,7 @@
       if (data.analysis && typeof data.analysis === 'object') {
         const { 
           descricao, calorias, proteinas_g, hidratos_g, gorduras_g,
-          confianca, sugestao, fonte_dados, produto_oficial
+          confianca, sugestao, fonte_dados, produto_oficial, porcao
         } = data.analysis;
 
         currentAnalysis = {
@@ -1204,6 +1310,7 @@
           sugestao,
           fonte_dados,
           produto_oficial,
+          porcao: porcao || selectedPortion,
           timestamp: new Date().toISOString()
         };
 
@@ -1236,10 +1343,19 @@
           `;
         }
 
+        const porcaoLabel = {
+          'pequena': '🥣 Pequena',
+          'media': '🍽️ Média',
+          'grande': '🍱 Grande'
+        }[porcao || selectedPortion] || '🍽️ Média';
+
         resultBox.innerHTML = `
           ${sourceBadge}
           ${productInfo}
-          <div class="result-title">${descricao || 'Refeição não identificada'}</div>
+          <div class="result-title">
+            ${descricao || 'Refeição não identificada'}
+            <span class="portion-badge">${porcaoLabel}</span>
+          </div>
           <div class="confidence-bar">
             <span class="confidence-label">Confiança:</span>
             <span class="confidence-stars">${estrelas}</span>
@@ -1372,10 +1488,19 @@
       `;
     }
 
+    const porcaoLabel = {
+      'pequena': '🥣 Pequena',
+      'media': '🍽️ Média',
+      'grande': '🍱 Grande'
+    }[item.porcao || 'media'] || '🍽️ Média';
+
     resultBox.innerHTML = `
       ${sourceBadge}
       ${productInfo}
-      <div class="result-title">${item.descricao || 'Refeição'}</div>
+      <div class="result-title">
+        ${item.descricao || 'Refeição'}
+        <span class="portion-badge">${porcaoLabel}</span>
+      </div>
       <div class="confidence-bar">
         <span class="confidence-label">Confiança:</span>
         <span class="confidence-stars">${estrelas}</span>
@@ -1403,7 +1528,7 @@
         </div>
         <div class="macro-item">
           <div class="macro-label">⚡ Energia</div>
-          <div class="macro-value">${Math.round((item.calorias || 0) / 4.184)}<span class="macro-unit">kJ</span></div>
+          <div class="macro-value">${Math.round((item.calorias || 0) * 4.184)}<span class="macro-unit">kJ</span></div>
         </div>
       </div>
       ${item.sugestao ? `<div class="suggestion-box"><span class="suggestion-label">💡 Sugestão</span>${item.sugestao}</div>` : ''}
