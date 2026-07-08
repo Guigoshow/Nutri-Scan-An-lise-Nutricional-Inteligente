@@ -733,6 +733,52 @@
     letter-spacing: 0.05em;
   }
 
+  /* INGREDIENTES LIST */
+  .ingredients-list {
+    margin: 16px 0;
+    padding: 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .ingredients-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  .ingredient-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .ingredient-item:last-child {
+    border-bottom: none;
+  }
+
+  .ingredient-name {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .ingredient-details {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .ingredient-calories {
+    color: var(--primary-light);
+    font-weight: 600;
+  }
+
   .macros-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1023,7 +1069,7 @@
           <label class="portion-label">🍽️ Tamanho da porção:</label>
           <div class="portion-options">
             <button type="button" class="portion-btn" data-portion="pequena">
-              <span class="portion-btn-icon">🥣</span>
+              <span class="portion-btn-icon"></span>
               Pequena
             </button>
             <button type="button" class="portion-btn active" data-portion="media">
@@ -1084,14 +1130,14 @@
               <span class="feature-icon">🎯</span>
               <div class="feature-text">
                 <div class="feature-title">Análise Inteligente</div>
-                <div class="feature-desc">Identifica automaticamente os alimentos e calcula calorias, proteínas, hidratos e gorduras.</div>
+                <div class="feature-desc">Identifica automaticamente os alimentos e calcula calorias, proteínas, hidratos e gorduras com precisão profissional.</div>
               </div>
             </li>
             <li>
-              <span class="feature-icon"></span>
+              <span class="feature-icon">📦</span>
               <div class="feature-text">
                 <div class="feature-title">Base de Dados Alimentar</div>
-                <div class="feature-desc">Para produtos embalados, consulta informações nutricionais oficiais para maior precisão.</div>
+                <div class="feature-desc">Para produtos embalados, consulta informações nutricionais oficiais (Open Food Facts) para maior precisão.</div>
               </div>
             </li>
             <li>
@@ -1111,7 +1157,7 @@
           </ul>
 
           <p style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
-            <strong>Como funciona:</strong> Tira uma foto da tua refeição, indica o tamanho da porção e a nossa inteligência artificial analisa os alimentos visíveis, estimando as quantidades e calculando o valor nutricional total.
+            <strong>Como funciona:</strong> Tira uma foto da tua refeição, indica o tamanho da porção e a nossa inteligência artificial analisa cada ingrediente visível, estimando os pesos e calculando o valor nutricional total com base em dados nutricionais profissionais.
           </p>
         </div>
       </div>
@@ -1254,7 +1300,7 @@
       if (data.analysis && typeof data.analysis === 'object') {
         const { 
           descricao, calorias, proteinas_g, hidratos_g, gorduras_g,
-          confianca, sugestao, fonte_dados, produto_oficial, porcao
+          confianca, sugestao, fonte_dados, produto_oficial, porcao, ingredientes
         } = data.analysis;
 
         currentAnalysis = {
@@ -1268,6 +1314,7 @@
           fonte_dados,
           produto_oficial,
           porcao: porcao || selectedPortion,
+          ingredientes: ingredientes || [],
           timestamp: new Date().toISOString()
         };
 
@@ -1299,6 +1346,25 @@
           `;
         }
 
+        // Lista de ingredientes
+        let ingredientsList = '';
+        if (ingredientes && ingredientes.length > 0) {
+          ingredientsList = `
+            <div class="ingredients-list">
+              <div class="ingredients-title">Ingredientes Identificados</div>
+              ${ingredientes.map(ing => `
+                <div class="ingredient-item">
+                  <div>
+                    <div class="ingredient-name">${ing.nome}</div>
+                    <div class="ingredient-details">${ing.peso_g}g</div>
+                  </div>
+                  <div class="ingredient-calories">${ing.calorias} kcal</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
         const porcaoLabel = {
           'pequena': '🥣 Pequena',
           'media': '🍽️ Média',
@@ -1316,6 +1382,7 @@
             <span class="confidence-label">Confiança:</span>
             <span class="confidence-stars">${estrelas}</span>
           </div>
+          ${ingredientsList}
           <div class="calories-highlight">
             <div class="calories-label">Total de Calorias</div>
             <div class="calories-value">${calorias || 0}<span class="calories-unit">kcal</span></div>
@@ -1333,12 +1400,12 @@
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label"> Gorduras</div>
+              <div class="macro-label">🥑 Gorduras</div>
               <div class="macro-value">${gorduras_g || 0}<span class="macro-unit">g</span></div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label"> Energia</div>
+              <div class="macro-label">⚡ Energia</div>
               <div class="macro-value">${Math.round((calorias || 0) * 4.184)}<span class="macro-unit">kJ</span></div>
             </div>
           </div>
@@ -1400,7 +1467,7 @@
             <div class="history-item-date">${dateStr} ${timeStr}</div>
           </div>
           <div class="history-item-macros">
-            <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong> prot</span>
+            <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong> prot</span>
             <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong> hidr</span>
             <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong> gord</span>
           </div>
@@ -1443,8 +1510,26 @@
       `;
     }
 
+    let ingredientsList = '';
+    if (item.ingredientes && item.ingredientes.length > 0) {
+      ingredientsList = `
+        <div class="ingredients-list">
+          <div class="ingredients-title">Ingredientes Identificados</div>
+          ${item.ingredientes.map(ing => `
+            <div class="ingredient-item">
+              <div>
+                <div class="ingredient-name">${ing.nome}</div>
+                <div class="ingredient-details">${ing.peso_g}g</div>
+              </div>
+              <div class="ingredient-calories">${ing.calorias} kcal</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
     const porcaoLabel = {
-      'pequena': ' Pequena',
+      'pequena': '🥣 Pequena',
       'media': '🍽️ Média',
       'grande': '🍱 Grande'
     }[item.porcao || 'media'] || '🍽️ Média';
@@ -1460,6 +1545,7 @@
         <span class="confidence-label">Confiança:</span>
         <span class="confidence-stars">${estrelas}</span>
       </div>
+      ${ingredientsList}
       <div class="calories-highlight">
         <div class="calories-label">Total de Calorias</div>
         <div class="calories-value">${item.calorias}<span class="calories-unit">kcal</span></div>
@@ -1467,7 +1553,7 @@
       </div>
       <div class="macros-grid">
         <div class="macro-item">
-          <div class="macro-label"> Proteínas</div>
+          <div class="macro-label">🥩 Proteínas</div>
           <div class="macro-value">${item.proteinas_g}<span class="macro-unit">g</span></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% VDR</div>
         </div>
@@ -1477,7 +1563,7 @@
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% VDR</div>
         </div>
         <div class="macro-item">
-          <div class="macro-label">🥑 Gorduras</div>
+          <div class="macro-label"> Gorduras</div>
           <div class="macro-value">${item.gorduras_g}<span class="macro-unit">g</span></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% VDR</div>
         </div>
