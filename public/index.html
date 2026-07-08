@@ -4,7 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0f1410" />
-<title>Nutri Scan — Análise Nutricional</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Nutri Scan — Análise Nutricional Inteligente</title>
 <style>
   :root {
     --bg: #0f1410;
@@ -18,6 +20,7 @@
     --border: #2d352f;
     --error: #ef4444;
     --error-bg: rgba(239, 68, 68, 0.1);
+    --success: #10b981;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     --radius: 16px;
     --header-height: 64px;
@@ -30,9 +33,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -186,9 +187,7 @@
     flex-direction: column;
   }
 
-  .mobile-menu.show {
-    right: 0;
-  }
+  .mobile-menu.show { right: 0; }
 
   .mobile-menu-header {
     display: flex;
@@ -247,9 +246,7 @@
     color: var(--primary-light);
   }
 
-  .mobile-menu-nav-icon {
-    font-size: 20px;
-  }
+  .mobile-menu-nav-icon { font-size: 20px; }
 
   .mobile-menu-footer {
     margin-top: auto;
@@ -367,18 +364,14 @@
     gap: 12px;
   }
 
-  .feature-list li:last-child {
-    border-bottom: none;
-  }
+  .feature-list li:last-child { border-bottom: none; }
 
   .feature-icon {
     font-size: 20px;
     flex-shrink: 0;
   }
 
-  .feature-text {
-    flex: 1;
-  }
+  .feature-text { flex: 1; }
 
   .feature-title {
     font-weight: 600;
@@ -537,14 +530,10 @@
     opacity: 0.5;
   }
 
-  .empty-state-text {
-    font-size: 14px;
-  }
+  .empty-state-text { font-size: 14px; }
 
   /* UPLOAD */
-  .upload-section {
-    margin-bottom: 24px;
-  }
+  .upload-section { margin-bottom: 24px; }
 
   .drop-zone {
     border: 2px dashed var(--border);
@@ -608,9 +597,7 @@
     border: 2px solid var(--border);
   }
 
-  .preview-container.show {
-    display: block;
-  }
+  .preview-container.show { display: block; }
 
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -645,9 +632,7 @@
     box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
   }
 
-  .btn:active:not(:disabled) {
-    transform: translateY(0);
-  }
+  .btn:active:not(:disabled) { transform: translateY(0); }
 
   .btn:disabled {
     opacity: 0.5;
@@ -666,9 +651,7 @@
     margin-top: 20px;
   }
 
-  .spinner.show {
-    display: flex;
-  }
+  .spinner.show { display: flex; }
 
   .spinner-dot {
     width: 8px;
@@ -697,9 +680,7 @@
     animation: slideIn 0.5s ease-out;
   }
 
-  .result.show {
-    display: block;
-  }
+  .result.show { display: block; }
 
   .result-title {
     font-size: 16px;
@@ -709,6 +690,10 @@
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
     line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   .confidence-bar {
@@ -746,7 +731,6 @@
     color: var(--primary-light);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-left: auto;
   }
 
   .macros-grid {
@@ -912,9 +896,7 @@
     color: var(--error);
   }
 
-  .error.show {
-    display: block;
-  }
+  .error.show { display: block; }
 
   /* FOOTER */
   .footer {
@@ -928,37 +910,21 @@
 
   /* RESPONSIVE */
   @media (max-width: 640px) {
-    :root {
-      --header-height: 56px;
-    }
+    :root { --header-height: 56px; }
 
-    body {
-      padding-top: var(--header-height);
-    }
+    body { padding-top: var(--header-height); }
 
-    .header {
-      padding: 0 16px;
-    }
+    .header { padding: 0 16px; }
 
-    .header-nav {
-      display: none;
-    }
+    .header-nav { display: none; }
 
-    .menu-toggle {
-      display: block;
-    }
+    .menu-toggle { display: block; }
 
-    .header-title-sub {
-      display: none;
-    }
+    .header-title-sub { display: none; }
 
-    .container {
-      padding: 16px 12px;
-    }
+    .container { padding: 16px 12px; }
 
-    .card {
-      padding: 24px 16px;
-    }
+    .card { padding: 24px 16px; }
 
     .logo-large {
       width: 76px;
@@ -966,21 +932,13 @@
       font-size: 38px;
     }
 
-    h1 {
-      font-size: 22px;
-    }
+    h1 { font-size: 22px; }
 
-    .drop-zone {
-      padding: 40px 20px;
-    }
+    .drop-zone { padding: 40px 20px; }
 
-    .macros-grid {
-      grid-template-columns: 1fr;
-    }
+    .macros-grid { grid-template-columns: 1fr; }
 
-    .portion-options {
-      grid-template-columns: 1fr;
-    }
+    .portion-options { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -988,7 +946,7 @@
   <!-- HEADER -->
   <header class="header">
     <a href="/" class="header-brand">
-      <div class="header-logo"></div>
+      <div class="header-logo">🥗</div>
       <div class="header-title">
         <span class="header-title-main">Nutri Scan</span>
         <span class="header-title-sub">Análise Nutricional</span>
@@ -1069,7 +1027,7 @@
               Pequena
             </button>
             <button type="button" class="portion-btn active" data-portion="media">
-              <span class="portion-btn-icon">🍽️</span>
+              <span class="portion-btn-icon">️</span>
               Média
             </button>
             <button type="button" class="portion-btn" data-portion="grande">
@@ -1130,14 +1088,14 @@
               </div>
             </li>
             <li>
-              <span class="feature-icon">📦</span>
+              <span class="feature-icon"></span>
               <div class="feature-text">
                 <div class="feature-title">Base de Dados Alimentar</div>
                 <div class="feature-desc">Para produtos embalados, consulta informações nutricionais oficiais para maior precisão.</div>
               </div>
             </li>
             <li>
-              <span class="feature-icon">⚡</span>
+              <span class="feature-icon"></span>
               <div class="feature-text">
                 <div class="feature-title">Rápido e Privado</div>
                 <div class="feature-desc">Resultados em segundos. As tuas imagens não são guardadas nos nossos servidores.</div>
@@ -1181,9 +1139,8 @@
   let base64Image = null;
   let mimeType = null;
   let currentAnalysis = null;
-  let selectedPortion = 'media'; // Valor padrão
+  let selectedPortion = 'media';
 
-  // Carregar histórico ao iniciar
   document.addEventListener('DOMContentLoaded', loadHistory);
 
   // Gerir seleção de porção
@@ -1314,7 +1271,6 @@
           timestamp: new Date().toISOString()
         };
 
-        // Guardar no histórico
         saveToHistory(currentAnalysis);
 
         const estrelas = '⭐'.repeat(confianca || 3) + '☆'.repeat(5 - (confianca || 3));
@@ -1377,12 +1333,12 @@
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label">🥑 Gorduras</div>
+              <div class="macro-label"> Gorduras</div>
               <div class="macro-value">${gorduras_g || 0}<span class="macro-unit">g</span></div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label">⚡ Energia</div>
+              <div class="macro-label"> Energia</div>
               <div class="macro-value">${Math.round((calorias || 0) * 4.184)}<span class="macro-unit">kJ</span></div>
             </div>
           </div>
@@ -1408,7 +1364,6 @@
   function saveToHistory(analysis) {
     let history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
     history.unshift(analysis);
-    // Manter apenas últimas 20 análises
     if (history.length > 20) history = history.slice(0, 20);
     localStorage.setItem('nutriScanHistory', JSON.stringify(history));
     loadHistory();
@@ -1445,7 +1400,7 @@
             <div class="history-item-date">${dateStr} ${timeStr}</div>
           </div>
           <div class="history-item-macros">
-            <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong> prot</span>
+            <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong> prot</span>
             <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong> hidr</span>
             <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong> gord</span>
           </div>
@@ -1489,7 +1444,7 @@
     }
 
     const porcaoLabel = {
-      'pequena': '🥣 Pequena',
+      'pequena': ' Pequena',
       'media': '🍽️ Média',
       'grande': '🍱 Grande'
     }[item.porcao || 'media'] || '🍽️ Média';
@@ -1512,7 +1467,7 @@
       </div>
       <div class="macros-grid">
         <div class="macro-item">
-          <div class="macro-label">🥩 Proteínas</div>
+          <div class="macro-label"> Proteínas</div>
           <div class="macro-value">${item.proteinas_g}<span class="macro-unit">g</span></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% VDR</div>
         </div>
@@ -1536,8 +1491,6 @@
 
     resultBox.classList.add('show');
     resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-    // Scroll para secção analisar
     document.getElementById('analisar').scrollIntoView({ behavior: 'smooth' });
   }
 
