@@ -3,199 +3,424 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Nutri Scan — Protótipo</title>
+<title>Nutri Scan — Análise Nutricional por IA</title>
 <style>
   :root {
-    --bg: #1c211b;
-    --panel: #262d23;
-    --leaf: #7fb069;
-    --leaf-bright: #9fd587;
-    --paper: #f2efe6;
-    --muted: #9aa593;
-    --line: #3a4234;
+    --bg: #0f1410;
+    --surface: #1a1f1b;
+    --card: #242a26;
+    --primary: #7fb069;
+    --primary-light: #9fd587;
+    --primary-dark: #5a8f4a;
+    --text: #f2efe6;
+    --text-muted: #8b957e;
+    --border: #2d352f;
+    --error: #ef4444;
+    --error-bg: rgba(239, 68, 68, 0.1);
+    --success: #10b981;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --radius: 16px;
   }
 
-  * { box-sizing: border-box; }
+  * { 
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   body {
-    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg) 0%, #1a1f1b 100%);
+    color: var(--text);
     min-height: 100vh;
-    background: var(--bg);
-    color: var(--paper);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 20px;
+    line-height: 1.6;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 32px 28px;
+    box-shadow: var(--shadow);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 32px;
+    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
   }
 
   .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.14em;
+    font-size: 11px;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--leaf-bright);
-    font-weight: 600;
-    margin: 0 0 6px;
+    color: var(--primary-light);
+    font-weight: 700;
+    margin-bottom: 8px;
   }
 
   h1 {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 28px;
-    margin: 0 0 8px;
-    line-height: 1.15;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+    line-height: 1.2;
   }
 
-  p.sub {
-    color: var(--muted);
+  .subtitle {
+    color: var(--text-muted);
     font-size: 14px;
-    margin: 0 0 24px;
     line-height: 1.5;
   }
 
-  .drop {
-    border: 1.5px dashed var(--line);
-    border-radius: 14px;
-    padding: 28px 16px;
+  .upload-section {
+    margin-bottom: 24px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 24px;
     text-align: center;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: all 0.3s ease;
+    background: var(--card);
     position: relative;
+    overflow: hidden;
   }
 
-  .drop:hover, .drop.dragover {
-    border-color: var(--leaf);
-    background: rgba(127, 176, 105, 0.06);
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.05);
+    transform: translateY(-2px);
   }
 
-  .drop input {
+  .drop-zone input {
     position: absolute;
     inset: 0;
     opacity: 0;
     cursor: pointer;
+    width: 100%;
+    height: 100%;
   }
 
-  .drop-icon { font-size: 26px; margin-bottom: 8px; display: block; }
-  .drop-text { font-size: 14px; color: var(--muted); }
-  .drop-text strong { color: var(--paper); }
+  .drop-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.8;
+  }
+
+  .drop-text {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .drop-text strong {
+    color: var(--text);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .preview-container {
+    margin-top: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .preview-container.show {
+    display: block;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   #preview {
-    display: none;
     width: 100%;
-    max-height: 220px;
+    max-height: 280px;
     object-fit: cover;
     border-radius: 12px;
-    margin-top: 14px;
   }
 
-  button {
+  .btn {
     width: 100%;
-    margin-top: 18px;
-    padding: 13px;
+    padding: 16px 24px;
     border: none;
-    border-radius: 10px;
-    background: var(--leaf);
-    color: #10140d;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
-  }
-
-  button:hover:not(:disabled) { background: var(--leaf-bright); }
-  button:active:not(:disabled) { transform: scale(0.99); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .result {
-    display: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
     margin-top: 20px;
-    padding: 18px;
-    background: rgba(127, 176, 105, 0.08);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font-size: 14.5px;
-    line-height: 1.7;
-    white-space: pre-wrap;
   }
 
-  .result.show { display: block; }
-
-  .error {
-    display: none;
-    margin-top: 16px;
-    padding: 14px;
-    background: rgba(200, 80, 60, 0.1);
-    border: 1px solid rgba(200, 80, 60, 0.3);
-    border-radius: 10px;
-    font-size: 13.5px;
-    color: #e8a999;
+  .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(127, 176, 105, 0.4);
   }
 
-  .error.show { display: block; }
+  .btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
   .spinner {
     display: none;
     align-items: center;
-    gap: 8px;
     justify-content: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 14px;
+    gap: 10px;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 20px;
   }
 
-  .spinner.show { display: flex; }
-
-  .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--leaf);
-    animation: pulse 1s infinite ease-in-out;
+  .spinner.show {
+    display: flex;
   }
-  .dot:nth-child(2) { animation-delay: 0.15s; }
-  .dot:nth-child(3) { animation-delay: 0.3s; }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: scale(0.85); }
-    50% { opacity: 1; transform: scale(1); }
+  .spinner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .spinner-dot:nth-child(1) { animation-delay: -0.32s; }
+  .spinner-dot:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  .result {
+    display: none;
+    margin-top: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    animation: slideIn 0.5s ease-out;
+  }
+
+  .result.show {
+    display: block;
+  }
+
+  .result-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .macros-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .macro-item {
+    background: var(--surface);
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .macro-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .macro-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .macro-unit {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .calories-highlight {
+    background: linear-gradient(135deg, rgba(127, 176, 105, 0.15) 0%, rgba(127, 176, 105, 0.05) 100%);
+    border: 1px solid var(--primary);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .calories-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .calories-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primary-light);
+    line-height: 1;
+  }
+
+  .calories-unit {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+
+  .error {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--error-bg);
+    border: 1px solid var(--error);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--error);
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .error.show {
+    display: block;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(127, 176, 105, 0.15);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      padding: 16px;
+    }
+    
+    .card {
+      padding: 24px 20px;
+    }
+    
+    h1 {
+      font-size: 22px;
+    }
+    
+    .macros-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 </head>
 <body>
-  <div class="card">
-    <p class="eyebrow">Protótipo · análise por IA</p>
-    <h1>O que está no teu prato?</h1>
-    <p class="sub">Envia uma foto da refeição e recebe uma estimativa de calorias e macronutrientes.</p>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="logo">🥗</div>
+        <div class="eyebrow">Nutri Scan · IA</div>
+        <h1>O que está no teu prato?</h1>
+        <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea de calorias e macronutrientes.</p>
+      </div>
 
-    <label class="drop" id="dropZone">
-      <input type="file" id="fileInput" accept="image/*" capture="environment" />
-      <span class="drop-icon">📷</span>
-      <span class="drop-text"><strong>Escolhe uma foto</strong><br>ou arrasta para aqui</span>
-    </label>
+      <div class="upload-section">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" capture="environment" />
+          <span class="drop-icon">📸</span>
+          <span class="drop-text">
+            <strong>Toca para escolher uma foto</strong>
+            ou arrasta para aqui
+          </span>
+        </div>
 
-    <img id="preview" alt="Pré-visualização da refeição" />
+        <div class="preview-container" id="previewContainer">
+          <img id="preview" alt="Pré-visualização da refeição" />
+        </div>
+      </div>
 
-    <button id="analyzeBtn" disabled>Analisar refeição</button>
+      <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
 
-    <div class="spinner" id="spinner">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      a analisar a foto…
+      <div class="spinner" id="spinner">
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
+        <span>A analisar a tua refeição...</span>
+      </div>
+
+      <div class="error" id="error"></div>
+
+      <div class="result" id="result"></div>
     </div>
-
-    <div class="result" id="result"></div>
-    <div class="error" id="error"></div>
   </div>
 
 <script>
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   const preview = document.getElementById('preview');
+  const previewContainer = document.getElementById('previewContainer');
   const analyzeBtn = document.getElementById('analyzeBtn');
   const spinner = document.getElementById('spinner');
   const resultBox = document.getElementById('result');
@@ -204,7 +429,6 @@
   let base64Image = null;
   let mimeType = null;
 
-  // Função para comprimir a imagem antes de enviar
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -259,15 +483,13 @@
   });
 
   function handleFile(file) {
-    // Mostra preview imediato
     const previewUrl = URL.createObjectURL(file);
     preview.src = previewUrl;
-    preview.style.display = 'block';
+    previewContainer.classList.add('show');
     analyzeBtn.disabled = true;
     resultBox.classList.remove('show');
     errorBox.classList.remove('show');
 
-    // Comprime a imagem em background
     compressImage(file)
       .then((compressedDataUrl) => {
         base64Image = compressedDataUrl.split(',')[1];
@@ -306,24 +528,45 @@
         throw new Error(data.error || 'Erro desconhecido.');
       }
 
-      // Suporta tanto JSON estruturado como texto simples
       if (data.analysis && typeof data.analysis === 'object') {
         const { descricao, calorias, proteinas_g, hidratos_g, gorduras_g } = data.analysis;
         resultBox.innerHTML = `
-          <strong>${descricao || 'Refeição não identificada'}</strong><br>
-          🔥 ${calorias || 0} kcal<br>
-          🥩 Proteínas: ${proteinas_g || 0}g<br>
-          🍞 Hidratos: ${hidratos_g || 0}g<br>
-          🥑 Gorduras: ${gorduras_g || 0}g
+          <div class="badge">Resultado da Análise</div>
+          <div class="result-title">${descricao || 'Refeição não identificada'}</div>
+          
+          <div class="calories-highlight">
+            <div class="calories-label">Total de Calorias</div>
+            <div class="calories-value">${calorias || 0}<span class="calories-unit">kcal</span></div>
+          </div>
+          
+          <div class="macros-grid">
+            <div class="macro-item">
+              <div class="macro-label">🥩 Proteínas</div>
+              <div class="macro-value">${proteinas_g || 0}<span class="macro-unit">g</span></div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">🍞 Hidratos</div>
+              <div class="macro-value">${hidratos_g || 0}<span class="macro-unit">g</span></div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">🥑 Gorduras</div>
+              <div class="macro-value">${gorduras_g || 0}<span class="macro-unit">g</span></div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">📊 Fibra (est.)</div>
+              <div class="macro-value">~${Math.round((hidratos_g || 0) * 0.1)}<span class="macro-unit">g</span></div>
+            </div>
+          </div>
         `;
       } else {
-        resultBox.textContent = data.analysis || 'Análise não disponível.';
+        resultBox.innerHTML = `<div class="result-title">${data.analysis || 'Análise não disponível.'}</div>`;
       }
 
       resultBox.classList.add('show');
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (err) {
       console.error('Erro na análise:', err);
-      errorBox.textContent = err.message || 'Não foi possível analisar a foto.';
+      errorBox.textContent = err.message || 'Não foi possível analisar a foto. Tenta novamente.';
       errorBox.classList.add('show');
     } finally {
       spinner.classList.remove('show');
