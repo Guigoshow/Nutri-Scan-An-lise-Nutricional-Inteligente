@@ -1,197 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Nutri Scan — Protótipo</title>
-<style>
-  :root {
-    --bg: #1c211b;
-    --panel: #262d23;
-    --leaf: #7fb069;
-    --leaf-bright: #9fd587;
-    --paper: #f2efe6;
-    --muted: #9aa593;
-    --line: #3a4234;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--bg);
-    color: var(--paper);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-
-  .card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 32px 28px;
-  }
-
-  .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--leaf-bright);
-    font-weight: 600;
-    margin: 0 0 6px;
-  }
-
-  h1 {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 28px;
-    margin: 0 0 8px;
-    line-height: 1.15;
-  }
-
-  p.sub {
-    color: var(--muted);
-    font-size: 14px;
-    margin: 0 0 24px;
-    line-height: 1.5;
-  }
-
-  .drop {
-    border: 1.5px dashed var(--line);
-    border-radius: 14px;
-    padding: 28px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
-    position: relative;
-  }
-
-  .drop:hover, .drop.dragover {
-    border-color: var(--leaf);
-    background: rgba(127, 176, 105, 0.06);
-  }
-
-  .drop input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .drop-icon { font-size: 26px; margin-bottom: 8px; display: block; }
-  .drop-text { font-size: 14px; color: var(--muted); }
-  .drop-text strong { color: var(--paper); }
-
-  #preview {
-    display: none;
-    width: 100%;
-    max-height: 220px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin-top: 14px;
-  }
-
-  button {
-    width: 100%;
-    margin-top: 18px;
-    padding: 13px;
-    border: none;
-    border-radius: 10px;
-    background: var(--leaf);
-    color: #10140d;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
-  }
-
-  button:hover:not(:disabled) { background: var(--leaf-bright); }
-  button:active:not(:disabled) { transform: scale(0.99); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .result {
-    display: none;
-    margin-top: 20px;
-    padding: 18px;
-    background: rgba(127, 176, 105, 0.08);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font-size: 14.5px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-
-  .result.show { display: block; }
-
-  .error {
-    display: none;
-    margin-top: 16px;
-    padding: 14px;
-    background: rgba(200, 80, 60, 0.1);
-    border: 1px solid rgba(200, 80, 60, 0.3);
-    border-radius: 10px;
-    font-size: 13.5px;
-    color: #e8a999;
-  }
-
-  .error.show { display: block; }
-
-  .spinner {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 14px;
-  }
-
-  .spinner.show { display: flex; }
-
-  .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--leaf);
-    animation: pulse 1s infinite ease-in-out;
-  }
-  .dot:nth-child(2) { animation-delay: 0.15s; }
-  .dot:nth-child(3) { animation-delay: 0.3s; }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: scale(0.85); }
-    50% { opacity: 1; transform: scale(1); }
-  }
-</style>
-</head>
-<body>
-  <div class="card">
-    <p class="eyebrow">Protótipo · análise por IA</p>
-    <h1>O que está no teu prato?</h1>
-    <p class="sub">Envia uma foto da refeição e recebe uma estimativa de calorias e macronutrientes.</p>
-
-    <label class="drop" id="dropZone">
-      <input type="file" id="fileInput" accept="image/*" capture="environment" />
-      <span class="drop-icon">📷</span>
-      <span class="drop-text"><strong>Escolhe uma foto</strong><br>ou arrasta para aqui</span>
-    </label>
-
-    <img id="preview" alt="Pré-visualização da refeição" />
-
-    <button id="analyzeBtn" disabled>Analisar refeição</button>
-
-    <div class="spinner" id="spinner">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      a analisar a foto…
-    </div>
-
-    <div class="result" id="result"></div>
-    <div class="error" id="error"></div>
-  </div>
-
 <script>
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
@@ -204,9 +10,40 @@
   let base64Image = null;
   let mimeType = null;
 
-  fileInput.addEventListener('change', (e) => {
+  // NOVO: Função para comprimir a imagem antes de enviar
+  function compressImage(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1024; // Redimensiona para no máximo 1024px
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Converte para JPEG com 70% de qualidade (reduz de 5-15MB para ~100-300KB)
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
-    if (file) handleFile(file);
+    if (file) await handleFile(file);
   });
 
   dropZone.addEventListener('dragover', (e) => {
@@ -214,26 +51,29 @@
     dropZone.classList.add('dragover');
   });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-  dropZone.addEventListener('drop', (e) => {
+  dropZone.addEventListener('drop', async (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
     const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    if (file) await handleFile(file);
   });
 
-  function handleFile(file) {
-    mimeType = file.type;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      base64Image = result.split(',')[1];
-      preview.src = result;
-      preview.style.display = 'block';
-      analyzeBtn.disabled = false;
-      resultBox.classList.remove('show');
-      errorBox.classList.remove('show');
-    };
-    reader.readAsDataURL(file);
+  // MODIFICADO: Agora comprime a imagem antes de mostrar o preview
+  async function handleFile(file) {
+    mimeType = 'image/jpeg'; // Força JPEG após compressão
+    
+    // Mostra preview imediato (sem compressão) para feedback rápido
+    const previewUrl = URL.createObjectURL(file);
+    preview.src = previewUrl;
+    preview.style.display = 'block';
+    
+    // Comprime em background
+    const compressedDataUrl = await compressImage(file);
+    base64Image = compressedDataUrl.split(',')[1];
+    
+    analyzeBtn.disabled = false;
+    resultBox.classList.remove('show');
+    errorBox.classList.remove('show');
   }
 
   analyzeBtn.addEventListener('click', async () => {
@@ -268,6 +108,3 @@
     }
   });
 </script>
-</body>
-</html>
-
