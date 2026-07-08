@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0f1410" />
-<title>Nutri Scan — Análise Nutricional por IA</title>
+<title>Nutri Scan — Análise Nutricional</title>
 <style>
   :root {
     --bg: #0f1410;
@@ -154,7 +154,7 @@
     background: rgba(127, 176, 105, 0.1);
   }
 
-  /* MOBILE MENU DRAWER */
+  /* MOBILE MENU */
   .mobile-menu-overlay {
     display: none;
     position: fixed;
@@ -280,6 +280,7 @@
     border-radius: var(--radius);
     padding: 28px 24px;
     box-shadow: var(--shadow);
+    margin-bottom: 24px;
   }
 
   .header-section {
@@ -340,8 +341,11 @@
   .section-title {
     font-size: 20px;
     font-weight: 700;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .section-content {
@@ -385,6 +389,102 @@
   .feature-desc {
     font-size: 13px;
     color: var(--text-muted);
+  }
+
+  /* HISTORY ITEMS */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .history-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .history-item:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+  }
+
+  .history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .history-item-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    flex: 1;
+  }
+
+  .history-item-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-left: 12px;
+  }
+
+  .history-item-macros {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+  }
+
+  .history-item-macro {
+    color: var(--text-muted);
+  }
+
+  .history-item-macro strong {
+    color: var(--primary-light);
+  }
+
+  .history-item-calories {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-light);
+    margin-top: 8px;
+  }
+
+  .clear-history-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid var(--error);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .clear-history-btn:hover {
+    background: var(--error);
+    color: white;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .empty-state-text {
+    font-size: 14px;
   }
 
   /* UPLOAD */
@@ -748,23 +848,6 @@
     display: block;
   }
 
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-  }
-
-  .empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-  }
-
-  .empty-state-text {
-    font-size: 14px;
-  }
-
   /* FOOTER */
   .footer {
     text-align: center;
@@ -836,7 +919,7 @@
       <div class="header-logo"></div>
       <div class="header-title">
         <span class="header-title-main">Nutri Scan</span>
-        <span class="header-title-sub">Análise por IA</span>
+        <span class="header-title-sub">Análise Nutricional</span>
       </div>
     </a>
     
@@ -867,13 +950,13 @@
         <span>Histórico</span>
       </a>
       <a href="#sobre" onclick="toggleMobileMenu()">
-        <span class="mobile-menu-nav-icon">️</span>
+        <span class="mobile-menu-nav-icon">ℹ️</span>
         <span>Sobre</span>
       </a>
     </nav>
     <div class="mobile-menu-footer">
-      Nutri Scan v1.0<br>
-      Protótipo em desenvolvimento
+      Nutri Scan<br>
+      Análise inteligente de refeições
     </div>
   </div>
 
@@ -884,7 +967,7 @@
       <div class="card">
         <div class="header-section">
           <div class="logo-large">🥗</div>
-          <div class="eyebrow">Nutri Scan · IA</div>
+          <div class="eyebrow">Nutri Scan</div>
           <h1>O que está no teu prato?</h1>
           <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea de calorias e macronutrientes.</p>
         </div>
@@ -922,13 +1005,18 @@
     <!-- HISTÓRICO SECTION -->
     <section id="historico" class="section">
       <div class="card">
-        <h2 class="section-title">📊 Histórico de Análises</h2>
+        <div class="section-title">
+          <span>📊 Histórico de Análises</span>
+          <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
+        </div>
         <div class="section-content">
-          <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-text">
-              Ainda não analisaste nenhuma refeição.<br>
-              Tira uma foto acima para começar!
+          <div id="historyList" class="history-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-text">
+                Ainda não analisaste nenhuma refeição.<br>
+                Tira uma foto acima para começar!
+              </div>
             </div>
           </div>
         </div>
@@ -938,34 +1026,34 @@
     <!-- SOBRE SECTION -->
     <section id="sobre" class="section">
       <div class="card">
-        <h2 class="section-title">️ Sobre o Nutri Scan</h2>
+        <h2 class="section-title">ℹ️ Sobre o Nutri Scan</h2>
         <div class="section-content">
-          <p>O <strong>Nutri Scan</strong> é um protótipo que usa inteligência artificial para analisar fotos de refeições e estimar o seu valor nutricional.</p>
+          <p>O <strong>Nutri Scan</strong> é uma aplicação que usa inteligência artificial para analisar fotos de refeições e estimar o seu valor nutricional de forma rápida e prática.</p>
           
           <ul class="feature-list">
             <li>
-              <span class="feature-icon">🤖</span>
+              <span class="feature-icon">🎯</span>
               <div class="feature-text">
-                <div class="feature-title">Análise por IA</div>
-                <div class="feature-desc">Usa o modelo Qwen 3.6 27B via Groq para identificar alimentos e estimar nutrientes.</div>
+                <div class="feature-title">Análise Inteligente</div>
+                <div class="feature-desc">Identifica automaticamente os alimentos e calcula calorias, proteínas, hidratos e gorduras.</div>
               </div>
             </li>
             <li>
               <span class="feature-icon">📦</span>
               <div class="feature-text">
-                <div class="feature-title">Open Food Facts</div>
-                <div class="feature-desc">Para produtos embalados, valida os dados com a base de dados oficial Open Food Facts.</div>
+                <div class="feature-title">Base de Dados Alimentar</div>
+                <div class="feature-desc">Para produtos embalados, consulta informações nutricionais oficiais para maior precisão.</div>
               </div>
             </li>
             <li>
               <span class="feature-icon">⚡</span>
               <div class="feature-text">
                 <div class="feature-title">Rápido e Privado</div>
-                <div class="feature-desc">Análise em segundos. As imagens não são guardadas.</div>
+                <div class="feature-desc">Resultados em segundos. As tuas imagens não são guardadas nos nossos servidores.</div>
               </div>
             </li>
             <li>
-              <span class="feature-icon">🎯</span>
+              <span class="feature-icon">💡</span>
               <div class="feature-text">
                 <div class="feature-title">Sugestões Personalizadas</div>
                 <div class="feature-desc">Recebe recomendações para equilibrar a tua alimentação ao longo do dia.</div>
@@ -973,10 +1061,8 @@
             </li>
           </ul>
 
-          <p style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
-            <strong>Versão:</strong> 1.0.0 (Protótipo)<br>
-            <strong>Tecnologia:</strong> HTML, CSS, JavaScript, Groq API, Open Food Facts<br>
-            <strong>Deploy:</strong> Vercel
+          <p style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
+            <strong>Como funciona:</strong> Tira uma foto da tua refeição e a nossa inteligência artificial analisa os alimentos visíveis, estimando as quantidades e calculando o valor nutricional total.
           </p>
         </div>
       </div>
@@ -984,7 +1070,7 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-      © 2026 Nutri Scan · Protótipo em desenvolvimento
+      © 2026 Nutri Scan · Análise inteligente de refeições
     </footer>
   </div>
 
@@ -997,9 +1083,15 @@
   const spinner = document.getElementById('spinner');
   const resultBox = document.getElementById('result');
   const errorBox = document.getElementById('error');
+  const historyList = document.getElementById('historyList');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
   let base64Image = null;
   let mimeType = null;
+  let currentAnalysis = null;
+
+  // Carregar histórico ao iniciar
+  document.addEventListener('DOMContentLoaded', loadHistory);
 
   function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -1102,6 +1194,22 @@
           confianca, sugestao, fonte_dados, produto_oficial
         } = data.analysis;
 
+        currentAnalysis = {
+          descricao,
+          calorias,
+          proteinas_g,
+          hidratos_g,
+          gorduras_g,
+          confianca,
+          sugestao,
+          fonte_dados,
+          produto_oficial,
+          timestamp: new Date().toISOString()
+        };
+
+        // Guardar no histórico
+        saveToHistory(currentAnalysis);
+
         const estrelas = '⭐'.repeat(confianca || 3) + '☆'.repeat(5 - (confianca || 3));
         const pctCal = Math.round((calorias / 2000) * 100);
         const pctProt = Math.round((proteinas_g / 50) * 100);
@@ -1179,6 +1287,141 @@
       analyzeBtn.disabled = false;
     }
   });
+
+  // FUNÇÕES DE HISTÓRICO
+  function saveToHistory(analysis) {
+    let history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    history.unshift(analysis);
+    // Manter apenas últimas 20 análises
+    if (history.length > 20) history = history.slice(0, 20);
+    localStorage.setItem('nutriScanHistory', JSON.stringify(history));
+    loadHistory();
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    
+    if (history.length === 0) {
+      historyList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-text">
+            Ainda não analisaste nenhuma refeição.<br>
+            Tira uma foto acima para começar!
+          </div>
+        </div>
+      `;
+      clearHistoryBtn.style.display = 'none';
+      return;
+    }
+
+    clearHistoryBtn.style.display = 'block';
+    
+    historyList.innerHTML = history.map((item, index) => {
+      const date = new Date(item.timestamp);
+      const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      
+      return `
+        <div class="history-item" onclick="loadAnalysis(${index})">
+          <div class="history-item-header">
+            <div class="history-item-title">${item.descricao || 'Refeição'}</div>
+            <div class="history-item-date">${dateStr} ${timeStr}</div>
+          </div>
+          <div class="history-item-macros">
+            <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong> prot</span>
+            <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong> hidr</span>
+            <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong> gord</span>
+          </div>
+          <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function loadAnalysis(index) {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    const item = history[index];
+    if (!item) return;
+
+    currentAnalysis = item;
+    
+    const estrelas = '⭐'.repeat(item.confianca || 3) + '☆'.repeat(5 - (item.confianca || 3));
+    const pctCal = Math.round((item.calorias / 2000) * 100);
+    const pctProt = Math.round((item.proteinas_g / 50) * 100);
+    const pctHidr = Math.round((item.hidratos_g / 260) * 100);
+    const pctGord = Math.round((item.gorduras_g / 70) * 100);
+
+    let sourceBadge = '';
+    if (item.fonte_dados === 'openfoodfacts') {
+      sourceBadge = '<div class="source-badge openfoodfacts">✅ Dados Oficiais Open Food Facts</div>';
+    } else if (item.fonte_dados === 'ia_validada') {
+      sourceBadge = '<div class="source-badge ia-validada">✓ IA + Base Validada</div>';
+    } else {
+      sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
+    }
+
+    let productInfo = '';
+    if (item.produto_oficial && item.produto_oficial.nome) {
+      productInfo = `
+        <div class="product-info">
+          <div class="product-info-label">📦 Produto Identificado</div>
+          <div class="product-info-name">${item.produto_oficial.nome}</div>
+          ${item.produto_oficial.marca ? `<div class="product-info-brand">${item.produto_oficial.marca}</div>` : ''}
+        </div>
+      `;
+    }
+
+    resultBox.innerHTML = `
+      ${sourceBadge}
+      ${productInfo}
+      <div class="result-title">${item.descricao || 'Refeição'}</div>
+      <div class="confidence-bar">
+        <span class="confidence-label">Confiança:</span>
+        <span class="confidence-stars">${estrelas}</span>
+      </div>
+      <div class="calories-highlight">
+        <div class="calories-label">Total de Calorias</div>
+        <div class="calories-value">${item.calorias}<span class="calories-unit">kcal</span></div>
+        <div class="calories-percent">${pctCal}% do VDR (2000 kcal)</div>
+      </div>
+      <div class="macros-grid">
+        <div class="macro-item">
+          <div class="macro-label">🥩 Proteínas</div>
+          <div class="macro-value">${item.proteinas_g}<span class="macro-unit">g</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% VDR</div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-label">🍞 Hidratos</div>
+          <div class="macro-value">${item.hidratos_g}<span class="macro-unit">g</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% VDR</div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-label">🥑 Gorduras</div>
+          <div class="macro-value">${item.gorduras_g}<span class="macro-unit">g</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% VDR</div>
+        </div>
+        <div class="macro-item">
+          <div class="macro-label">⚡ Energia</div>
+          <div class="macro-value">${Math.round((item.calorias || 0) / 4.184)}<span class="macro-unit">kJ</span></div>
+        </div>
+      </div>
+      ${item.sugestao ? `<div class="suggestion-box"><span class="suggestion-label">💡 Sugestão</span>${item.sugestao}</div>` : ''}
+    `;
+
+    resultBox.classList.add('show');
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Scroll para secção analisar
+    document.getElementById('analisar').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function clearHistory() {
+    if (confirm('Tens a certeza que queres apagar todo o histórico?')) {
+      localStorage.removeItem('nutriScanHistory');
+      loadHistory();
+    }
+  }
 
   // MOBILE MENU
   function toggleMobileMenu() {
