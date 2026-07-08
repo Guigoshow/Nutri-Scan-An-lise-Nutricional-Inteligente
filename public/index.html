@@ -406,6 +406,72 @@
     margin-bottom: 12px;
   }
 
+  .source-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .source-badge.openfoodfacts {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  }
+
+  .source-badge.ia-validada {
+    background: #7fb069;
+    color: white;
+    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+  }
+
+  .source-badge.ia-estimativa {
+    background: #8b957e;
+    color: white;
+    box-shadow: 0 2px 8px rgba(139, 149, 126, 0.3);
+  }
+
+  .product-info {
+    background: var(--surface);
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .product-info-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .product-info-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .product-info-brand {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .product-info-barcode {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-family: 'Courier New', monospace;
+    opacity: 0.7;
+  }
+
   @media (max-width: 640px) {
     body {
       padding: 16px;
@@ -585,7 +651,10 @@
           hidratos_g, 
           gorduras_g,
           confianca,
-          sugestao 
+          sugestao,
+          fonte_dados,
+          produto_oficial,
+          tipo
         } = data.analysis;
 
         // Gera estrelas de confiança
@@ -598,8 +667,32 @@
         const percentagemHidr = Math.round((hidratos_g / 260) * 100);
         const percentagemGord = Math.round((gorduras_g / 70) * 100);
 
+        // Badge de fonte de dados
+        let sourceBadge = '';
+        if (fonte_dados === 'openfoodfacts') {
+          sourceBadge = '<div class="source-badge openfoodfacts">✅ Dados Oficiais Open Food Facts</div>';
+        } else if (fonte_dados === 'ia_validada') {
+          sourceBadge = '<div class="source-badge ia-validada">✓ IA + Base Validada</div>';
+        } else {
+          sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
+        }
+
+        // Info do produto oficial se existir
+        let productInfo = '';
+        if (produto_oficial && produto_oficial.nome) {
+          productInfo = `
+            <div class="product-info">
+              <div class="product-info-label">📦 Produto Identificado</div>
+              <div class="product-info-name">${produto_oficial.nome}</div>
+              ${produto_oficial.marca ? `<div class="product-info-brand">${produto_oficial.marca}</div>` : ''}
+              ${produto_oficial.codigoBarras ? `<div class="product-info-barcode">Código: ${produto_oficial.codigoBarras}</div>` : ''}
+            </div>
+          `;
+        }
+
         resultBox.innerHTML = `
-          <div class="badge">Resultado da Análise</div>
+          ${sourceBadge}
+          ${productInfo}
           <div class="result-title">${descricao || 'Refeição não identificada'}</div>
           
           <div class="confidence-bar">
