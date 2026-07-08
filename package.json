@@ -1,0 +1,8 @@
+{
+  "name": "nutri-web-prototype",
+  "version": "1.0.0",
+  "description": "Protótipo: site que analisa fotos de refeições com Gemini",
+  "engines": {
+    "node": ">=18"
+  }
+}
