@@ -10,17 +10,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nenhuma imagem recebida.' });
     }
 
+    // Validação de segurança: limita o tamanho do payload
+    if (imageBase64.length > 5000000) { // ~3.5MB em base64
+      return res.status(413).json({ error: 'Imagem demasiado grande. Usa uma foto mais pequena.' });
+    }
+
     const dataUri = `data:${mimeType || 'image/jpeg'};base64,${imageBase64}`;
 
-    const systemPrompt = `Analisas fotos de refeições e devolves uma estimativa nutricional.
+    const systemPrompt = `Analisas fotos de refeições e devolves uma estimativa nutricional em formato JSON.
 
 Regras obrigatórias:
-- Nunca reveles o teu raciocínio interno. A resposta deve conter apenas o resultado final para o utilizador, sem tags de pensamento nem processo intermédio.
-- Baseia-te apenas no que é visível na imagem. Quando não tiveres a certeza de um ingrediente, usa expressões como "parece conter" ou "provavelmente". Não inventes ingredientes que não sejam claramente visíveis.
+- Baseia-te apenas no que é visível na imagem. Quando não tiveres a certeza de um ingrediente, usa expressões como "parece conter" ou "provavelmente" na descrição.
 - As estimativas devem ser coerentes: as calorias devem corresponder aproximadamente aos macronutrientes (4 kcal/g para proteína e hidratos de carbono, 9 kcal/g para gordura).
 - Para pratos com massa, queijo ou molhos (ex: pizzas inteiras), não subestimes as calorias — considera o tamanho aparente, a espessura, a quantidade de queijo e o azeite/gordura visível.
-- Resposta em português de Portugal, texto simples, sem markdown, sem asteriscos, máximo 5 linhas.
-- A saída deve conter apenas: descrição da refeição; calorias estimadas; proteínas, hidratos de carbono e gorduras estimados. Nada mais — sem introduções, sem avisos, sem despedidas.`;
+- Descrição em português de Portugal, concisa (máximo 1 frase).
+- Números inteiros para calorias e gramas.
+
+A saída deve ser APENAS um objeto JSON válido, sem markdown, sem \`\`\`json, sem texto extra.
+Formato exato:
+{
+  "descricao": "descrição curta da refeição",
+  "calorias": numero_inteiro,
+  "proteinas_g": numero_inteiro,
+  "hidratos_g": numero_inteiro,
+  "gorduras_g": numero_inteiro
+}`;
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -41,7 +55,7 @@ Regras obrigatórias:
             content: [
               {
                 type: 'text',
-                text: 'Analisa esta foto de uma refeição, seguindo à risca as regras do sistema.',
+                text: 'Analisa esta foto de uma refeição e devolve apenas o JSON seguindo à risca as regras do sistema.',
               },
               {
                 type: 'image_url',
@@ -61,13 +75,35 @@ Regras obrigatórias:
     }
 
     let analysisText =
-      groqData.choices?.[0]?.message?.content?.trim() ||
-      'Não consegui identificar bem a comida. Tenta uma foto mais nítida e com boa luz.';
+      groqData.choices?.[0]?.message?.content?.trim() || '';
 
     // Rede de segurança: remove qualquer bloco de "pensamento" que o modelo possa ter deixado escapar
     analysisText = analysisText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-    return res.status(200).json({ analysis: analysisText });
+    // Tenta fazer parse do JSON
+    let analysis;
+    try {
+      // Remove possíveis markdown blocks se a IA os adicionar
+      analysisText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      analysis = JSON.parse(analysisText);
+      
+      // Validação básica dos campos
+      if (!analysis.descricao || typeof analysis.calorias !== 'number') {
+        throw new Error('JSON inválido');
+      }
+    } catch (parseError) {
+      console.error('Erro ao fazer parse do JSON:', analysisText);
+      // Fallback se a IA não devolver JSON válido
+      analysis = {
+        descricao: 'Não consegui identificar bem a comida. Tenta uma foto mais nítida e com boa luz.',
+        calorias: 0,
+        proteinas_g: 0,
+        hidratos_g: 0,
+        gorduras_g: 0
+      };
+    }
+
+    return res.status(200).json({ analysis });
   } catch (error) {
     console.error('Erro no /api/analyze:', error);
     return res.status(500).json({ error: 'Ocorreu um erro a analisar a foto. Tenta novamente.' });
@@ -77,7 +113,7 @@ Regras obrigatórias:
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb',
+      sizeLimit: '5mb', // Reduzido porque o frontend comprime as imagens
     },
   },
 };
