@@ -148,7 +148,7 @@ Exemplo prato cozinhado:
         throw new Error('Campo "tipo" deve ser "produto_embalado" ou "prato_cozinhado"');
       }
 
-      //  INTEGRAÇÃO OPEN FOOD FACTS
+      // 🔥 INTEGRAÇÃO OPEN FOOD FACTS
       let openFoodFactsData = null;
 
       if (analysis.tipo === 'produto_embalado' && (analysis.marca_sugerida || analysis.produto_sugerido)) {
@@ -156,7 +156,7 @@ Exemplo prato cozinhado:
         const query = `${analysis.marca_sugerida || ''} ${analysis.produto_sugerido || ''}`.trim();
         
         if (query.length > 2) {
-          console.log(' Buscando no Open Food Facts:', query);
+          console.log('🔍 Buscando no Open Food Facts:', query);
           const produtos = await searchProduct(query);
 
           if (produtos.length > 0) {
