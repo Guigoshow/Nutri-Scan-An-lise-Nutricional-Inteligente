@@ -2,7 +2,10 @@
 <html lang="pt-PT">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0f1410" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Nutri Scan — Análise Nutricional por IA</title>
 <style>
   :root {
@@ -20,12 +23,18 @@
     --success: #10b981;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     --radius: 16px;
+    --header-height: 60px;
   }
 
   * { 
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -33,16 +42,87 @@
     background: linear-gradient(135deg, var(--bg) 0%, #1a1f1b 100%);
     color: var(--text);
     min-height: 100vh;
+    padding-top: var(--header-height);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: rgba(26, 31, 27, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .header-logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    line-height: 1.6;
+    font-size: 20px;
   }
 
+  .header-nav {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .header-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+
+  .header-nav a:hover {
+    color: var(--primary-light);
+    background: rgba(127, 176, 105, 0.1);
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  /* CONTAINER PRINCIPAL */
   .container {
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px;
     animation: fadeIn 0.6s ease-out;
   }
 
@@ -55,26 +135,26 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 32px 28px;
+    padding: 24px 20px;
     box-shadow: var(--shadow);
   }
 
-  .header {
+  .header-section {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
-  .logo {
-    width: 64px;
-    height: 64px;
+  .logo-large {
+    width: 80px;
+    height: 80px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    border-radius: 16px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
-    font-size: 32px;
-    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
+    font-size: 40px;
+    box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
   }
 
   .eyebrow {
@@ -87,7 +167,7 @@
   }
 
   h1 {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     margin-bottom: 8px;
     color: var(--text);
@@ -100,14 +180,15 @@
     line-height: 1.5;
   }
 
+  /* UPLOAD SECTION */
   .upload-section {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .drop-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
-    padding: 32px 24px;
+    padding: 40px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -119,7 +200,6 @@
   .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--primary);
     background: rgba(127, 176, 105, 0.05);
-    transform: translateY(-2px);
   }
 
   .drop-zone input {
@@ -132,7 +212,7 @@
   }
 
   .drop-icon {
-    font-size: 40px;
+    font-size: 48px;
     margin-bottom: 12px;
     display: block;
     opacity: 0.8;
@@ -150,12 +230,21 @@
     margin-bottom: 4px;
   }
 
+  .drop-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    opacity: 0.8;
+  }
+
+  /* PREVIEW */
   .preview-container {
-    margin-top: 20px;
+    margin-top: 16px;
     border-radius: 12px;
     overflow: hidden;
     display: none;
     animation: slideIn 0.4s ease-out;
+    border: 1px solid var(--border);
   }
 
   .preview-container.show {
@@ -169,11 +258,12 @@
 
   #preview {
     width: 100%;
-    max-height: 280px;
+    max-height: 300px;
     object-fit: cover;
-    border-radius: 12px;
+    display: block;
   }
 
+  /* BOTÃO */
   .btn {
     width: 100%;
     padding: 16px 24px;
@@ -181,12 +271,14 @@
     border-radius: 12px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #fff;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
     margin-top: 20px;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .btn:hover:not(:disabled) {
@@ -203,6 +295,7 @@
     cursor: not-allowed;
   }
 
+  /* SPINNER */
   .spinner {
     display: none;
     align-items: center;
@@ -234,13 +327,14 @@
     40% { transform: scale(1); }
   }
 
+  /* RESULTADOS */
   .result {
     display: none;
     margin-top: 24px;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 20px;
     animation: slideIn 0.5s ease-out;
   }
 
@@ -370,28 +464,7 @@
     display: block;
   }
 
-  .error {
-    display: none;
-    margin-top: 20px;
-    padding: 16px;
-    background: var(--error-bg);
-    border: 1px solid var(--error);
-    border-radius: 12px;
-    font-size: 14px;
-    color: var(--error);
-    animation: shake 0.5s ease-in-out;
-  }
-
-  .error.show {
-    display: block;
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-
+  /* BADGES */
   .badge {
     display: inline-block;
     padding: 4px 10px;
@@ -472,36 +545,187 @@
     opacity: 0.7;
   }
 
+  /* ERROR */
+  .error {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--error-bg);
+    border: 1px solid var(--error);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--error);
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .error.show {
+    display: block;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  /* MOBILE NAVIGATION */
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(26, 31, 27, 0.98);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    z-index: 1000;
+    justify-content: space-around;
+  }
+
+  .mobile-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 11px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+
+  .mobile-nav a.active, .mobile-nav a:hover {
+    color: var(--primary-light);
+    background: rgba(127, 176, 105, 0.1);
+  }
+
+  .mobile-nav-icon {
+    font-size: 20px;
+  }
+
+  /* RESPONSIVE */
   @media (max-width: 640px) {
+    :root {
+      --header-height: 56px;
+    }
+
     body {
-      padding: 16px;
+      padding-top: var(--header-height);
+      padding-bottom: 70px; /* Espaço para mobile nav */
     }
-    
+
+    .header {
+      padding: 0 12px;
+    }
+
+    .header-nav {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: block;
+    }
+
+    .container {
+      padding: 16px 12px;
+    }
+
     .card {
-      padding: 24px 20px;
+      padding: 20px 16px;
     }
-    
+
+    .logo-large {
+      width: 70px;
+      height: 70px;
+      font-size: 36px;
+    }
+
     h1 {
-      font-size: 22px;
+      font-size: 20px;
     }
-    
+
+    .subtitle {
+      font-size: 13px;
+    }
+
+    .drop-zone {
+      padding: 32px 16px;
+    }
+
+    .drop-icon {
+      font-size: 40px;
+    }
+
     .macros-grid {
       grid-template-columns: 1fr;
+    }
+
+    .calories-value {
+      font-size: 28px;
+    }
+
+    .mobile-nav {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .header-logo span {
+      display: none;
+    }
+
+    h1 {
+      font-size: 18px;
+    }
+
+    .btn {
+      font-size: 15px;
+      padding: 14px 20px;
+    }
+  }
+
+  /* TOUCH OPTIMIZATIONS */
+  @media (hover: none) {
+    .btn:hover:not(:disabled) {
+      transform: none;
+    }
+
+    .drop-zone:hover {
+      transform: none;
     }
   }
 </style>
 </head>
 <body>
+  <!-- HEADER -->
+  <header class="header">
+    <a href="/" class="header-logo">
+      <div class="header-logo-icon">🥗</div>
+      <span>Nutri Scan</span>
+    </a>
+    
+    <nav class="header-nav">
+      <a href="#analisar">Analisar</a>
+      <a href="#historico">Histórico</a>
+      <a href="#sobre">Sobre</a>
+    </nav>
+
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <!-- MAIN CONTENT -->
   <div class="container">
     <div class="card">
-      <div class="header">
-        <div class="logo">🥗</div>
+      <div class="header-section">
+        <div class="logo-large"></div>
         <div class="eyebrow">Nutri Scan · IA</div>
         <h1>O que está no teu prato?</h1>
         <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea de calorias e macronutrientes.</p>
       </div>
 
-      <div class="upload-section">
+      <div class="upload-section" id="analisar">
         <div class="drop-zone" id="dropZone">
           <input type="file" id="fileInput" accept="image/*" capture="environment" />
           <span class="drop-icon">📸</span>
@@ -509,6 +733,7 @@
             <strong>Toca para escolher uma foto</strong>
             ou arrasta para aqui
           </span>
+          <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
         </div>
 
         <div class="preview-container" id="previewContainer">
@@ -530,6 +755,22 @@
       <div class="result" id="result"></div>
     </div>
   </div>
+
+  <!-- MOBILE NAVIGATION -->
+  <nav class="mobile-nav">
+    <a href="#analisar" class="active">
+      <span class="mobile-nav-icon">📸</span>
+      <span>Analisar</span>
+    </a>
+    <a href="#historico">
+      <span class="mobile-nav-icon">📊</span>
+      <span>Histórico</span>
+    </a>
+    <a href="#sobre">
+      <span class="mobile-nav-icon">️</span>
+      <span>Sobre</span>
+    </a>
+  </nav>
 
 <script>
   const dropZone = document.getElementById('dropZone');
@@ -657,17 +898,14 @@
           tipo
         } = data.analysis;
 
-        // Gera estrelas de confiança
         const estrelasCheias = '⭐'.repeat(confianca || 3);
         const estrelasVazias = '☆'.repeat(5 - (confianca || 3));
         
-        // Calcula percentagem do VDR (Valor Diário de Referência)
         const percentagemCal = Math.round((calorias / 2000) * 100);
         const percentagemProt = Math.round((proteinas_g / 50) * 100);
         const percentagemHidr = Math.round((hidratos_g / 260) * 100);
         const percentagemGord = Math.round((gorduras_g / 70) * 100);
 
-        // Badge de fonte de dados
         let sourceBadge = '';
         if (fonte_dados === 'openfoodfacts') {
           sourceBadge = '<div class="source-badge openfoodfacts">✅ Dados Oficiais Open Food Facts</div>';
@@ -677,7 +915,6 @@
           sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
         }
 
-        // Info do produto oficial se existir
         let productInfo = '';
         if (produto_oficial && produto_oficial.nome) {
           productInfo = `
@@ -713,7 +950,7 @@
               <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${percentagemProt}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label">🍞 Hidratos</div>
+              <div class="macro-label"> Hidratos</div>
               <div class="macro-value">${hidratos_g || 0}<span class="macro-unit">g</span></div>
               <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${percentagemHidr}% VDR</div>
             </div>
@@ -751,6 +988,20 @@
       analyzeBtn.disabled = false;
     }
   });
+
+  function toggleMenu() {
+    alert('Menu mobile - funcionalidade em desenvolvimento!');
+  }
+
+  // Prevenir zoom em double-tap em iOS
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
 </script>
 </body>
 </html>
