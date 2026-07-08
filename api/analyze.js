@@ -17,23 +17,38 @@ export default async function handler(req, res) {
 
     const dataUri = `data:${mimeType || 'image/jpeg'};base64,${imageBase64}`;
 
-    const systemPrompt = `Analisas fotos de refeições e devolves uma estimativa nutricional em formato JSON.
+    const systemPrompt = `Analisas fotos de refeições e devolves uma estimativa nutricional detalhada em formato JSON.
 
 Regras obrigatórias:
 - Baseia-te apenas no que é visível na imagem. Quando não tiveres a certeza de um ingrediente, usa expressões como "parece conter" ou "provavelmente" na descrição.
 - As estimativas devem ser coerentes: as calorias devem corresponder aproximadamente aos macronutrientes (4 kcal/g para proteína e hidratos de carbono, 9 kcal/g para gordura).
 - Para pratos com massa, queijo ou molhos (ex: pizzas inteiras), não subestimes as calorias — considera o tamanho aparente, a espessura, a quantidade de queijo e o azeite/gordura visível.
-- Descrição em português de Portugal, concisa (máximo 1 frase).
+- Descrição em português de Portugal, concisa (máximo 1-2 frases).
 - Números inteiros para calorias e gramas.
+- Confiança: atribui 1-5 estrelas baseado na qualidade da imagem e clareza dos ingredientes (1=muito incerto, 5=muito certo).
+- Sugestão: recomendação curta para a próxima refeição para equilibrar os macros do dia.
 
 A saída deve ser APENAS um objeto JSON válido, sem markdown, sem \`\`\`json, sem texto extra.
 Formato exato:
 {
-  "descricao": "descrição curta da refeição",
+  "descricao": "descrição clara da refeição identificada",
   "calorias": numero_inteiro,
   "proteinas_g": numero_inteiro,
   "hidratos_g": numero_inteiro,
-  "gorduras_g": numero_inteiro
+  "gorduras_g": numero_inteiro,
+  "confianca": numero_de_1_a_5,
+  "sugestao": "sugestão curta e prática para próxima refeição"
+}
+
+Exemplo válido:
+{
+  "descricao": "Pizza inteira com molho de tomate, queijo mozzarella, rúcula e cebola roxa",
+  "calorias": 1400,
+  "proteinas_g": 50,
+  "hidratos_g": 180,
+  "gorduras_g": 50,
+  "confianca": 4,
+  "sugestao": "Na próxima refeição, privilegia proteína magra e vegetais, pois esta foi rica em hidratos e gorduras."
 }`;
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -45,6 +60,7 @@ Formato exato:
       body: JSON.stringify({
         model: 'qwen/qwen3.6-27b',
         reasoning_effort: 'none',
+        temperature: 0.3, // Mais consistente para análise nutricional
         messages: [
           {
             role: 'system',
@@ -87,19 +103,59 @@ Formato exato:
       analysisText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       analysis = JSON.parse(analysisText);
       
-      // Validação básica dos campos
-      if (!analysis.descricao || typeof analysis.calorias !== 'number') {
-        throw new Error('JSON inválido');
+      // Validação completa dos campos obrigatórios
+      const requiredFields = ['descricao', 'calorias', 'proteinas_g', 'hidratos_g', 'gorduras_g'];
+      const missingFields = requiredFields.filter(field => !(field in analysis));
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Campos em falta: ${missingFields.join(', ')}`);
       }
+      
+      // Validação de tipos
+      if (typeof analysis.descricao !== 'string') {
+        throw new Error('Campo "descricao" deve ser texto');
+      }
+      if (typeof analysis.calorias !== 'number' || analysis.calorias < 0) {
+        throw new Error('Campo "calorias" deve ser número positivo');
+      }
+      
+      // Validação de coerência calórica (margem de 15%)
+      const calculatedCalories = 
+        (analysis.proteinas_g || 0) * 4 + 
+        (analysis.hidratos_g || 0) * 4 + 
+        (analysis.gorduras_g || 0) * 9;
+      
+      const calorieDiff = Math.abs(analysis.calorias - calculatedCalories);
+      const calorieDiffPercent = (calorieDiff / analysis.calorias) * 100;
+      
+      if (calorieDiffPercent > 15) {
+        console.warn(`Aviso: incoerência calórica de ${calorieDiffPercent.toFixed(1)}%. Calorias: ${analysis.calorias}, Calculado: ${calculatedCalories}`);
+        // Corrige automaticamente se a diferença for grande
+        analysis.calorias = Math.round(calculatedCalories);
+      }
+      
+      // Define confiança padrão se não existir
+      if (!analysis.confianca || typeof analysis.confianca !== 'number') {
+        analysis.confianca = 3; // Valor padrão
+      }
+      analysis.confianca = Math.max(1, Math.min(5, Math.round(analysis.confianca))); // Garante 1-5
+      
+      // Define sugestão padrão se não existir
+      if (!analysis.sugestao || typeof analysis.sugestao !== 'string') {
+        analysis.sugestao = 'Mantém uma alimentação equilibrada ao longo do dia.';
+      }
+      
     } catch (parseError) {
-      console.error('Erro ao fazer parse do JSON:', analysisText);
+      console.error('Erro ao fazer parse do JSON:', parseError.message, '| Conteúdo:', analysisText);
       // Fallback se a IA não devolver JSON válido
       analysis = {
         descricao: 'Não consegui identificar bem a comida. Tenta uma foto mais nítida e com boa luz.',
         calorias: 0,
         proteinas_g: 0,
         hidratos_g: 0,
-        gorduras_g: 0
+        gorduras_g: 0,
+        confianca: 1,
+        sugestao: 'Tira uma foto com melhor iluminação e enquadramento para uma análise mais precisa.'
       };
     }
 
