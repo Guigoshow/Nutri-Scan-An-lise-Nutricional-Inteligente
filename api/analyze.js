@@ -12,6 +12,16 @@ export default async function handler(req, res) {
 
     const dataUri = `data:${mimeType || 'image/jpeg'};base64,${imageBase64}`;
 
+    const systemPrompt = `Analisas fotos de refeições e devolves uma estimativa nutricional.
+
+Regras obrigatórias:
+- Nunca reveles o teu raciocínio interno. A resposta deve conter apenas o resultado final para o utilizador, sem tags de pensamento nem processo intermédio.
+- Baseia-te apenas no que é visível na imagem. Quando não tiveres a certeza de um ingrediente, usa expressões como "parece conter" ou "provavelmente". Não inventes ingredientes que não sejam claramente visíveis.
+- As estimativas devem ser coerentes: as calorias devem corresponder aproximadamente aos macronutrientes (4 kcal/g para proteína e hidratos de carbono, 9 kcal/g para gordura).
+- Para pratos com massa, queijo ou molhos (ex: pizzas inteiras), não subestimes as calorias — considera o tamanho aparente, a espessura, a quantidade de queijo e o azeite/gordura visível.
+- Resposta em português de Portugal, texto simples, sem markdown, sem asteriscos, máximo 5 linhas.
+- A saída deve conter apenas: descrição da refeição; calorias estimadas; proteínas, hidratos de carbono e gorduras estimados. Nada mais — sem introduções, sem avisos, sem despedidas.`;
+
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -20,13 +30,18 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'qwen/qwen3.6-27b',
+        reasoning_effort: 'none',
         messages: [
+          {
+            role: 'system',
+            content: systemPrompt,
+          },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Analisa esta foto de uma refeição. Responde em português de Portugal, em texto simples e curto (máximo 5 linhas, sem markdown, sem asteriscos), com: 1) o que identificas no prato, 2) estimativa de calorias, 3) estimativa de macros (proteína / carboidratos / gordura). Sê direto, sem introduções nem avisos.',
+                text: 'Analisa esta foto de uma refeição, seguindo à risca as regras do sistema.',
               },
               {
                 type: 'image_url',
@@ -45,9 +60,12 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'Não foi possível analisar a foto agora. Tenta novamente.' });
     }
 
-    const analysisText =
+    let analysisText =
       groqData.choices?.[0]?.message?.content?.trim() ||
       'Não consegui identificar bem a comida. Tenta uma foto mais nítida e com boa luz.';
+
+    // Rede de segurança: remove qualquer bloco de "pensamento" que o modelo possa ter deixado escapar
+    analysisText = analysisText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
     return res.status(200).json({ analysis: analysisText });
   } catch (error) {
