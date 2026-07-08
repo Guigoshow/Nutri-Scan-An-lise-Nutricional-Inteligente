@@ -258,6 +258,28 @@
     line-height: 1.5;
   }
 
+  .confidence-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .confidence-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .confidence-stars {
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
   .macros-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -319,6 +341,33 @@
     font-size: 16px;
     color: var(--text-muted);
     margin-left: 4px;
+  }
+
+  .calories-percent {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .suggestion-box {
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(127, 176, 105, 0.08);
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .suggestion-label {
+    font-size: 11px;
+    color: var(--primary-light);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: block;
   }
 
   .error {
@@ -529,34 +578,70 @@
       }
 
       if (data.analysis && typeof data.analysis === 'object') {
-        const { descricao, calorias, proteinas_g, hidratos_g, gorduras_g } = data.analysis;
+        const { 
+          descricao, 
+          calorias, 
+          proteinas_g, 
+          hidratos_g, 
+          gorduras_g,
+          confianca,
+          sugestao 
+        } = data.analysis;
+
+        // Gera estrelas de confiança
+        const estrelasCheias = '⭐'.repeat(confianca || 3);
+        const estrelasVazias = '☆'.repeat(5 - (confianca || 3));
+        
+        // Calcula percentagem do VDR (Valor Diário de Referência)
+        const percentagemCal = Math.round((calorias / 2000) * 100);
+        const percentagemProt = Math.round((proteinas_g / 50) * 100);
+        const percentagemHidr = Math.round((hidratos_g / 260) * 100);
+        const percentagemGord = Math.round((gorduras_g / 70) * 100);
+
         resultBox.innerHTML = `
           <div class="badge">Resultado da Análise</div>
           <div class="result-title">${descricao || 'Refeição não identificada'}</div>
           
+          <div class="confidence-bar">
+            <span class="confidence-label">📊 Confiança:</span>
+            <span class="confidence-stars">${estrelasCheias}${estrelasVazias}</span>
+          </div>
+          
           <div class="calories-highlight">
             <div class="calories-label">Total de Calorias</div>
             <div class="calories-value">${calorias || 0}<span class="calories-unit">kcal</span></div>
+            <div class="calories-percent">${percentagemCal}% do VDR diário (2000 kcal)</div>
           </div>
           
           <div class="macros-grid">
             <div class="macro-item">
               <div class="macro-label">🥩 Proteínas</div>
               <div class="macro-value">${proteinas_g || 0}<span class="macro-unit">g</span></div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${percentagemProt}% VDR</div>
             </div>
             <div class="macro-item">
               <div class="macro-label">🍞 Hidratos</div>
               <div class="macro-value">${hidratos_g || 0}<span class="macro-unit">g</span></div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${percentagemHidr}% VDR</div>
             </div>
             <div class="macro-item">
               <div class="macro-label">🥑 Gorduras</div>
               <div class="macro-value">${gorduras_g || 0}<span class="macro-unit">g</span></div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${percentagemGord}% VDR</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label">📊 Fibra (est.)</div>
-              <div class="macro-value">~${Math.round((hidratos_g || 0) * 0.1)}<span class="macro-unit">g</span></div>
+              <div class="macro-label">⚡ Energia</div>
+              <div class="macro-value">${Math.round((calorias || 0) / 4.184)}<span class="macro-unit">kJ</span></div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">joules</div>
             </div>
           </div>
+
+          ${sugestao ? `
+          <div class="suggestion-box">
+            <span class="suggestion-label">💡 Sugestão para próxima refeição</span>
+            ${sugestao}
+          </div>
+          ` : ''}
         `;
       } else {
         resultBox.innerHTML = `<div class="result-title">${data.analysis || 'Análise não disponível.'}</div>`;
