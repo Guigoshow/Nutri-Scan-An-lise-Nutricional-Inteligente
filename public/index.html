@@ -30,6 +30,10 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, var(--bg) 0%, #1a1f1b 100%);
@@ -39,7 +43,7 @@
     line-height: 1.6;
   }
 
-  /* HEADER MELHORADO */
+  /* HEADER */
   .header {
     position: fixed;
     top: 0;
@@ -54,7 +58,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 24px;
   }
 
   .header-brand {
@@ -74,7 +78,7 @@
     justify-content: center;
     font-size: 22px;
     box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
-    transition: transform 0.2s;
+    transition: transform 0.3s;
   }
 
   .header-brand:hover .header-logo {
@@ -150,6 +154,112 @@
     background: rgba(127, 176, 105, 0.1);
   }
 
+  /* MOBILE MENU DRAWER */
+  .mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .mobile-menu-overlay.show {
+    display: block;
+    opacity: 1;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 1002;
+    transition: right 0.3s ease;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-menu.show {
+    right: 0;
+  }
+
+  .mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-menu-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .mobile-menu-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .mobile-menu-close:hover {
+    background: rgba(127, 176, 105, 0.1);
+    color: var(--primary-light);
+  }
+
+  .mobile-menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-menu-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .mobile-menu-nav a:hover {
+    background: rgba(127, 176, 105, 0.1);
+    border-color: rgba(127, 176, 105, 0.2);
+    color: var(--primary-light);
+  }
+
+  .mobile-menu-nav-icon {
+    font-size: 20px;
+  }
+
+  .mobile-menu-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
   /* CONTAINER */
   .container {
     width: 100%;
@@ -219,6 +329,62 @@
     line-height: 1.6;
     max-width: 420px;
     margin: 0 auto;
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 40px;
+    scroll-margin-top: 80px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .section-content {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .feature-list {
+    list-style: none;
+    margin-top: 16px;
+  }
+
+  .feature-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .feature-list li:last-child {
+    border-bottom: none;
+  }
+
+  .feature-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .feature-text {
+    flex: 1;
+  }
+
+  .feature-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--text-muted);
   }
 
   /* UPLOAD */
@@ -582,41 +748,31 @@
     display: block;
   }
 
-  /* MOBILE NAV */
-  .mobile-nav {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(26, 31, 27, 0.98);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border);
-    padding: 8px 16px;
-    z-index: 1000;
-    justify-content: space-around;
-  }
-
-  .mobile-nav a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
     color: var(--text-muted);
-    text-decoration: none;
-    font-size: 11px;
-    padding: 8px 16px;
-    border-radius: 12px;
-    transition: all 0.2s;
   }
 
-  .mobile-nav a.active, .mobile-nav a:hover {
-    color: var(--primary-light);
-    background: rgba(127, 176, 105, 0.1);
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
   }
 
-  .mobile-nav-icon {
-    font-size: 20px;
+  .empty-state-text {
+    font-size: 14px;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
   }
 
   /* RESPONSIVE */
@@ -627,11 +783,10 @@
 
     body {
       padding-top: var(--header-height);
-      padding-bottom: 72px;
     }
 
     .header {
-      padding: 0 12px;
+      padding: 0 16px;
     }
 
     .header-nav {
@@ -671,10 +826,6 @@
     .macros-grid {
       grid-template-columns: 1fr;
     }
-
-    .mobile-nav {
-      display: flex;
-    }
   }
 </style>
 </head>
@@ -682,7 +833,7 @@
   <!-- HEADER -->
   <header class="header">
     <a href="/" class="header-brand">
-      <div class="header-logo">🥗</div>
+      <div class="header-logo"></div>
       <div class="header-title">
         <span class="header-title-main">Nutri Scan</span>
         <span class="header-title-sub">Análise por IA</span>
@@ -696,64 +847,146 @@
       <a href="#analisar" class="header-cta">Começar</a>
     </nav>
 
-    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
   </header>
 
-  <!-- MAIN -->
-  <div class="container">
-    <div class="card">
-      <div class="header-section">
-        <div class="logo-large">🥗</div>
-        <div class="eyebrow">Nutri Scan · IA</div>
-        <h1>O que está no teu prato?</h1>
-        <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea de calorias e macronutrientes.</p>
-      </div>
-
-      <div class="upload-section" id="analisar">
-        <div class="drop-zone" id="dropZone">
-          <input type="file" id="fileInput" accept="image/*" capture="environment" />
-          <span class="drop-icon">📸</span>
-          <span class="drop-text">
-            <strong>Toca para escolher uma foto</strong>
-            ou arrasta para aqui
-          </span>
-          <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
-        </div>
-
-        <div class="preview-container" id="previewContainer">
-          <img id="preview" alt="Pré-visualização" />
-        </div>
-      </div>
-
-      <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
-
-      <div class="spinner" id="spinner">
-        <div class="spinner-dot"></div>
-        <div class="spinner-dot"></div>
-        <div class="spinner-dot"></div>
-        <span>A analisar...</span>
-      </div>
-
-      <div class="error" id="error"></div>
-      <div class="result" id="result"></div>
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+      <span class="mobile-menu-title">Menu</span>
+      <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
+    </div>
+    <nav class="mobile-menu-nav">
+      <a href="#analisar" onclick="toggleMobileMenu()">
+        <span class="mobile-menu-nav-icon">📸</span>
+        <span>Analisar Refeição</span>
+      </a>
+      <a href="#historico" onclick="toggleMobileMenu()">
+        <span class="mobile-menu-nav-icon">📊</span>
+        <span>Histórico</span>
+      </a>
+      <a href="#sobre" onclick="toggleMobileMenu()">
+        <span class="mobile-menu-nav-icon">️</span>
+        <span>Sobre</span>
+      </a>
+    </nav>
+    <div class="mobile-menu-footer">
+      Nutri Scan v1.0<br>
+      Protótipo em desenvolvimento
     </div>
   </div>
 
-  <!-- MOBILE NAV -->
-  <nav class="mobile-nav">
-    <a href="#analisar" class="active">
-      <span class="mobile-nav-icon">📸</span>
-      <span>Analisar</span>
-    </a>
-    <a href="#historico">
-      <span class="mobile-nav-icon">📊</span>
-      <span>Histórico</span>
-    </a>
-    <a href="#sobre">
-      <span class="mobile-nav-icon">ℹ️</span>
-      <span>Sobre</span>
-    </a>
-  </nav>
+  <!-- MAIN -->
+  <div class="container">
+    <!-- ANALISAR SECTION -->
+    <section id="analisar" class="section">
+      <div class="card">
+        <div class="header-section">
+          <div class="logo-large">🥗</div>
+          <div class="eyebrow">Nutri Scan · IA</div>
+          <h1>O que está no teu prato?</h1>
+          <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea de calorias e macronutrientes.</p>
+        </div>
+
+        <div class="upload-section">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept="image/*" capture="environment" />
+            <span class="drop-icon">📸</span>
+            <span class="drop-text">
+              <strong>Toca para escolher uma foto</strong>
+              ou arrasta para aqui
+            </span>
+            <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
+          </div>
+
+          <div class="preview-container" id="previewContainer">
+            <img id="preview" alt="Pré-visualização" />
+          </div>
+        </div>
+
+        <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
+
+        <div class="spinner" id="spinner">
+          <div class="spinner-dot"></div>
+          <div class="spinner-dot"></div>
+          <div class="spinner-dot"></div>
+          <span>A analisar...</span>
+        </div>
+
+        <div class="error" id="error"></div>
+        <div class="result" id="result"></div>
+      </div>
+    </section>
+
+    <!-- HISTÓRICO SECTION -->
+    <section id="historico" class="section">
+      <div class="card">
+        <h2 class="section-title">📊 Histórico de Análises</h2>
+        <div class="section-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">
+              Ainda não analisaste nenhuma refeição.<br>
+              Tira uma foto acima para começar!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE SECTION -->
+    <section id="sobre" class="section">
+      <div class="card">
+        <h2 class="section-title">️ Sobre o Nutri Scan</h2>
+        <div class="section-content">
+          <p>O <strong>Nutri Scan</strong> é um protótipo que usa inteligência artificial para analisar fotos de refeições e estimar o seu valor nutricional.</p>
+          
+          <ul class="feature-list">
+            <li>
+              <span class="feature-icon">🤖</span>
+              <div class="feature-text">
+                <div class="feature-title">Análise por IA</div>
+                <div class="feature-desc">Usa o modelo Qwen 3.6 27B via Groq para identificar alimentos e estimar nutrientes.</div>
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">📦</span>
+              <div class="feature-text">
+                <div class="feature-title">Open Food Facts</div>
+                <div class="feature-desc">Para produtos embalados, valida os dados com a base de dados oficial Open Food Facts.</div>
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">⚡</span>
+              <div class="feature-text">
+                <div class="feature-title">Rápido e Privado</div>
+                <div class="feature-desc">Análise em segundos. As imagens não são guardadas.</div>
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">🎯</span>
+              <div class="feature-text">
+                <div class="feature-title">Sugestões Personalizadas</div>
+                <div class="feature-desc">Recebe recomendações para equilibrar a tua alimentação ao longo do dia.</div>
+              </div>
+            </li>
+          </ul>
+
+          <p style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <strong>Versão:</strong> 1.0.0 (Protótipo)<br>
+            <strong>Tecnologia:</strong> HTML, CSS, JavaScript, Groq API, Open Food Facts<br>
+            <strong>Deploy:</strong> Vercel
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      © 2026 Nutri Scan · Protótipo em desenvolvimento
+    </footer>
+  </div>
 
 <script>
   const dropZone = document.getElementById('dropZone');
@@ -947,9 +1180,24 @@
     }
   });
 
-  function toggleMenu() {
-    alert('Menu - funcionalidade em desenvolvimento!');
+  // MOBILE MENU
+  function toggleMobileMenu() {
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const menu = document.getElementById('mobileMenu');
+    overlay.classList.toggle('show');
+    menu.classList.toggle('show');
+    document.body.style.overflow = menu.classList.contains('show') ? 'hidden' : '';
   }
+
+  // Fechar menu com ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const menu = document.getElementById('mobileMenu');
+      if (menu.classList.contains('show')) {
+        toggleMobileMenu();
+      }
+    }
+  });
 </script>
 </body>
 </html>
