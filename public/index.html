@@ -1267,7 +1267,7 @@
             </div>
             <div class="macro-item">
               <div class="macro-label">⚡ Energia</div>
-              <div class="macro-value">${Math.round((calorias || 0) / 4.184)}<span class="macro-unit">kJ</span></div>
+              <div class="macro-value">${Math.round((calorias || 0) * 4.184)}<span class="macro-unit">kJ</span></div>
             </div>
           </div>
           ${sugestao ? `<div class="suggestion-box"><span class="suggestion-label">💡 Sugestão</span>${sugestao}</div>` : ''}
