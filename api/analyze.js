@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageBase64, mimeType } = req.body;
+    const { imageBase64, mimeType, portion = 'media' } = req.body;
 
     if (!imageBase64) {
       return res.status(400).json({ error: 'Nenhuma imagem recebida.' });
@@ -20,8 +20,28 @@ export default async function handler(req, res) {
 
     const dataUri = `data:${mimeType || 'image/jpeg'};base64,${imageBase64}`;
 
-    // Prompt melhorado para detetar tipo de alimento e produtos embalados
+    // Multiplicadores baseados no tamanho da porção
+    const portionMultipliers = {
+      'pequena': 0.7,  // Reduz 30%
+      'media': 1.0,    // Padrão
+      'grande': 1.4    // Aumenta 40%
+    };
+
+    const multiplier = portionMultipliers[portion] || 1.0;
+    const portionLabel = {
+      'pequena': 'pequena',
+      'media': 'média',
+      'grande': 'grande'
+    }[portion] || 'média';
+
+    // Prompt melhorado com contexto de porção
     const systemPrompt = `Analisas fotos de refeições e devolves informações em formato JSON.
+
+CONTEXTO IMPORTANTE: O utilizador indicou que esta é uma porção ${portionLabel}.
+Ajusta as quantidades estimadas de acordo:
+- Porção pequena: quantidades típicas de uma refeição ligeira
+- Porção média: quantidades padrão de uma refeição normal
+- Porção grande: quantidades generosas de uma refeição completa
 
 Regras obrigatórias:
 - Identifica se é "produto_embalado" (iogurte, bolachas, sumo, barra energética, leite, cereais) ou "prato_cozinhado" (pizza, salada, arroz, sopa, carne, peixe, sandes caseira)
@@ -87,7 +107,7 @@ Exemplo prato cozinhado:
       body: JSON.stringify({
         model: 'qwen/qwen3.6-27b',
         reasoning_effort: 'none',
-        temperature: 0.3, // Mais consistente para análise nutricional
+        temperature: 0.3,
         messages: [
           {
             role: 'system',
@@ -98,7 +118,7 @@ Exemplo prato cozinhado:
             content: [
               {
                 type: 'text',
-                text: 'Analisa esta foto e devolve apenas o JSON seguindo as regras.',
+                text: `Analisa esta foto (porção ${portionLabel}) e devolve apenas o JSON seguindo as regras.`,
               },
               {
                 type: 'image_url',
@@ -141,7 +161,7 @@ Exemplo prato cozinhado:
       if (typeof analysis.descricao !== 'string') {
         throw new Error('Campo "descricao" deve ser texto');
       }
-      if (typeof analysis.calorias !== 'number' || analysis.calorias < 0) {
+      if (typeof analysis.calorias !== 'number' || analysis.calories < 0) {
         throw new Error('Campo "calorias" deve ser número positivo');
       }
       if (!['produto_embalado', 'prato_cozinhado'].includes(analysis.tipo)) {
@@ -195,6 +215,15 @@ Exemplo prato cozinhado:
         analysis.fonte_dados = 'ia_estimativa';
       }
 
+      // Ajusta valores baseado no tamanho da porção (apenas para pratos cozinhados)
+      if (analysis.tipo === 'prato_cozinhado' && multiplier !== 1.0) {
+        console.log(`📏 Ajustando para porção ${portionLabel} (multiplicador: ${multiplier})`);
+        analysis.calorias = Math.round(analysis.calorias * multiplier);
+        analysis.proteinas_g = Math.round(analysis.proteinas_g * multiplier);
+        analysis.hidratos_g = Math.round(analysis.hidratos_g * multiplier);
+        analysis.gorduras_g = Math.round(analysis.gorduras_g * multiplier);
+      }
+
       // Validação de coerência calórica (margem de 15%)
       const calculatedCalories =
         (analysis.proteinas_g || 0) * 4 +
@@ -206,7 +235,7 @@ Exemplo prato cozinhado:
 
       if (calorieDiffPercent > 15) {
         console.warn(`⚠️ Incoerência calórica de ${calorieDiffPercent.toFixed(1)}%. Ajustando...`);
-        analysis.calorias = Math.round(calculatedCalories);
+        analysis.calories = Math.round(calculatedCalories);
       }
 
       // Define campos padrão se não existirem
@@ -226,6 +255,9 @@ Exemplo prato cozinhado:
         analysis.produto_sugerido = null;
       }
 
+      // Adiciona informação da porção
+      analysis.porcao = portionLabel;
+
     } catch (parseError) {
       console.error('❌ Erro ao fazer parse do JSON:', parseError.message, '| Conteúdo:', analysisText);
       // Fallback se a IA não devolver JSON válido
@@ -240,7 +272,8 @@ Exemplo prato cozinhado:
         tipo: 'prato_cozinhado',
         fonte_dados: 'ia_estimativa',
         marca_sugerida: null,
-        produto_sugerido: null
+        produto_sugerido: null,
+        porcao: portionLabel
       };
     }
 
