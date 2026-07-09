@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0f1410" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="description" content="Análise nutricional inteligente de refeições com IA" />
 <title>Nutri Scan — Análise Nutricional Inteligente</title>
 <style>
   :root {
@@ -21,9 +22,13 @@
     --error: #ef4444;
     --error-bg: rgba(239, 68, 68, 0.1);
     --success: #10b981;
+    --warning: #f59e0b;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
     --radius: 16px;
+    --radius-sm: 10px;
     --header-height: 64px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   * { 
@@ -36,12 +41,13 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: linear-gradient(135deg, var(--bg) 0%, #1a1f1b 100%);
     color: var(--text);
     min-height: 100vh;
     padding-top: var(--header-height);
     line-height: 1.6;
+    overflow-x: hidden;
   }
 
   /* HEADER */
@@ -60,6 +66,11 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 24px;
+    transition: var(--transition);
+  }
+
+  .header.scrolled {
+    box-shadow: var(--shadow);
   }
 
   .header-brand {
@@ -67,6 +78,11 @@
     align-items: center;
     gap: 12px;
     text-decoration: none;
+    transition: var(--transition);
+  }
+
+  .header-brand:hover {
+    transform: scale(1.02);
   }
 
   .header-logo {
@@ -116,8 +132,8 @@
     font-size: 14px;
     font-weight: 500;
     padding: 8px 14px;
-    border-radius: 10px;
-    transition: all 0.2s;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
     border: 1px solid transparent;
   }
 
@@ -148,7 +164,7 @@
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: var(--transition);
   }
 
   .menu-toggle:hover {
@@ -212,7 +228,7 @@
     cursor: pointer;
     padding: 4px;
     border-radius: 8px;
-    transition: all 0.2s;
+    transition: var(--transition);
   }
 
   .mobile-menu-close:hover {
@@ -236,7 +252,7 @@
     font-size: 15px;
     font-weight: 500;
     border-radius: 12px;
-    transition: all 0.2s;
+    transition: var(--transition);
     border: 1px solid transparent;
   }
 
@@ -278,6 +294,7 @@
     padding: 28px 24px;
     box-shadow: var(--shadow);
     margin-bottom: 24px;
+    transition: var(--transition);
   }
 
   .header-section {
@@ -333,6 +350,12 @@
   .section {
     margin-bottom: 40px;
     scroll-margin-top: 80px;
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .section-title {
@@ -362,6 +385,11 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    transition: var(--transition);
+  }
+
+  .feature-list li:hover {
+    padding-left: 8px;
   }
 
   .feature-list li:last-child { border-bottom: none; }
@@ -391,6 +419,11 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
+    transition: var(--transition);
+  }
+
+  .portion-selector:hover {
+    border-color: rgba(127, 176, 105, 0.3);
   }
 
   .portion-label {
@@ -411,18 +444,30 @@
     padding: 12px 8px;
     background: var(--surface);
     border: 2px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     color: var(--text-muted);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
     text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .portion-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
   }
 
   .portion-btn:hover {
     border-color: var(--primary);
     color: var(--primary-light);
+    transform: translateY(-2px);
   }
 
   .portion-btn.active {
@@ -430,6 +475,7 @@
     border-color: var(--primary);
     color: white;
     box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+    transform: translateY(-2px);
   }
 
   .portion-btn-icon {
@@ -451,12 +497,31 @@
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .history-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 0.3s;
   }
 
   .history-item:hover {
     border-color: var(--primary);
     transform: translateX(4px);
+    box-shadow: var(--shadow);
+  }
+
+  .history-item:hover::before {
+    transform: scaleY(1);
   }
 
   .history-item-header {
@@ -484,6 +549,7 @@
     display: flex;
     gap: 16px;
     font-size: 13px;
+    flex-wrap: wrap;
   }
 
   .history-item-macro {
@@ -509,12 +575,13 @@
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
   }
 
   .clear-history-btn:hover {
     background: var(--error);
     color: white;
+    transform: scale(1.05);
   }
 
   /* EMPTY STATE */
@@ -528,6 +595,12 @@
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
   }
 
   .empty-state-text { font-size: 14px; }
@@ -541,16 +614,30 @@
     padding: 48px 24px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     background: var(--card);
     position: relative;
     overflow: hidden;
+  }
+
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
   }
 
   .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--primary);
     background: rgba(127, 176, 105, 0.05);
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .drop-zone:hover::before, .drop-zone.dragover::before {
+    opacity: 1;
   }
 
   .drop-zone input {
@@ -567,6 +654,11 @@
     margin-bottom: 16px;
     display: block;
     opacity: 0.9;
+    transition: var(--transition);
+  }
+
+  .drop-zone:hover .drop-icon {
+    transform: scale(1.1);
   }
 
   .drop-text {
@@ -595,6 +687,7 @@
     display: none;
     animation: slideIn 0.4s ease-out;
     border: 2px solid var(--border);
+    position: relative;
   }
 
   .preview-container.show { display: block; }
@@ -622,9 +715,24 @@
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
     margin-top: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover:not(:disabled)::before {
+    opacity: 1;
   }
 
   .btn:hover:not(:disabled) {
@@ -637,6 +745,11 @@
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .btn span {
+    position: relative;
+    z-index: 1;
   }
 
   /* SPINNER */
@@ -703,7 +816,7 @@
     margin-bottom: 20px;
     padding: 12px 16px;
     background: var(--surface);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
   }
 
@@ -738,7 +851,7 @@
     margin: 16px 0;
     padding: 16px;
     background: var(--surface);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
   }
 
@@ -758,11 +871,15 @@
     padding: 8px 0;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
+    transition: var(--transition);
   }
 
-  .ingredient-item:last-child {
-    border-bottom: none;
+  .ingredient-item:hover {
+    padding-left: 8px;
+    background: rgba(127, 176, 105, 0.05);
   }
+
+  .ingredient-item:last-child { border-bottom: none; }
 
   .ingredient-name {
     color: var(--text);
@@ -791,6 +908,13 @@
     padding: 16px;
     border-radius: 12px;
     border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .macro-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
   }
 
   .macro-label {
@@ -822,6 +946,16 @@
     border-radius: 12px;
     text-align: center;
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calories-highlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.2) 0%, transparent 70%);
+    animation: pulse 3s infinite;
   }
 
   .calories-label {
@@ -830,6 +964,8 @@
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
   }
 
   .calories-value {
@@ -837,6 +973,8 @@
     font-weight: 800;
     color: var(--primary-light);
     line-height: 1;
+    position: relative;
+    z-index: 1;
   }
 
   .calories-unit {
@@ -849,6 +987,8 @@
     font-size: 12px;
     color: var(--text-muted);
     margin-top: 8px;
+    position: relative;
+    z-index: 1;
   }
 
   .suggestion-box {
@@ -860,6 +1000,11 @@
     font-size: 13px;
     line-height: 1.7;
     color: var(--text);
+    transition: var(--transition);
+  }
+
+  .suggestion-box:hover {
+    background: rgba(127, 176, 105, 0.12);
   }
 
   .suggestion-label {
@@ -882,6 +1027,11 @@
     margin-bottom: 16px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    transition: var(--transition);
+  }
+
+  .source-badge:hover {
+    transform: scale(1.05);
   }
 
   .source-badge.openfoodfacts {
@@ -905,9 +1055,14 @@
   .product-info {
     background: var(--surface);
     padding: 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     margin-bottom: 20px;
+    transition: var(--transition);
+  }
+
+  .product-info:hover {
+    border-color: var(--primary);
   }
 
   .product-info-label {
@@ -940,9 +1095,16 @@
     border-radius: 12px;
     font-size: 14px;
     color: var(--error);
+    animation: shake 0.5s ease-in-out;
   }
 
   .error.show { display: block; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
 
   /* FOOTER */
   .footer {
@@ -986,11 +1148,26 @@
 
     .portion-options { grid-template-columns: 1fr; }
   }
+
+  /* ACESSIBILIDADE */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* FOCUS STATES */
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
 </style>
 </head>
 <body>
   <!-- HEADER -->
-  <header class="header">
+  <header class="header" id="header">
     <a href="/" class="header-brand">
       <div class="header-logo">🥗</div>
       <div class="header-title">
@@ -1006,7 +1183,7 @@
       <a href="#analisar" class="header-cta">Começar</a>
     </nav>
 
-    <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+    <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir menu">☰</button>
   </header>
 
   <!-- MOBILE MENU -->
@@ -1014,7 +1191,7 @@
   <div class="mobile-menu" id="mobileMenu">
     <div class="mobile-menu-header">
       <span class="mobile-menu-title">Menu</span>
-      <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
+      <button class="mobile-menu-close" onclick="toggleMobileMenu()" aria-label="Fechar menu">✕</button>
     </div>
     <nav class="mobile-menu-nav">
       <a href="#analisar" onclick="toggleMobileMenu()">
@@ -1066,24 +1243,26 @@
 
         <!-- PORTION SELECTOR -->
         <div class="portion-selector">
-  <label class="portion-label">️ Tamanho da porção:</label>
-  <div class="portion-options">
-    <button type="button" class="portion-btn" data-portion="pequena">
-      <span class="portion-btn-icon">🥣</span>
-      Pequena
-    </button>
-    <button type="button" class="portion-btn active" data-portion="media">
-      <span class="portion-btn-icon">️</span>
-      Média
-    </button>
-    <button type="button" class="portion-btn" data-portion="grande">
-      <span class="portion-btn-icon">🍲</span>
-      Grande
-    </button>
-  </div>
-</div>
+          <label class="portion-label">🍽️ Tamanho da porção:</label>
+          <div class="portion-options">
+            <button type="button" class="portion-btn" data-portion="pequena">
+              <span class="portion-btn-icon">🥣</span>
+              Pequena
+            </button>
+            <button type="button" class="portion-btn active" data-portion="media">
+              <span class="portion-btn-icon">🥗</span>
+              Média
+            </button>
+            <button type="button" class="portion-btn" data-portion="grande">
+              <span class="portion-btn-icon">🍲</span>
+              Grande
+            </button>
+          </div>
+        </div>
 
-        <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
+        <button class="btn" id="analyzeBtn" disabled>
+          <span>Analisar refeição</span>
+        </button>
 
         <div class="spinner" id="spinner">
           <div class="spinner-dot"></div>
@@ -1141,7 +1320,7 @@
               </div>
             </li>
             <li>
-              <span class="feature-icon"></span>
+              <span class="feature-icon">⚡</span>
               <div class="feature-text">
                 <div class="feature-title">Rápido e Privado</div>
                 <div class="feature-desc">Resultados em segundos. As tuas imagens não são guardadas nos nossos servidores.</div>
@@ -1181,6 +1360,7 @@
   const historyList = document.getElementById('historyList');
   const clearHistoryBtn = document.getElementById('clearHistoryBtn');
   const portionBtns = document.querySelectorAll('.portion-btn');
+  const header = document.getElementById('header');
 
   let base64Image = null;
   let mimeType = null;
@@ -1188,6 +1368,15 @@
   let selectedPortion = 'media';
 
   document.addEventListener('DOMContentLoaded', loadHistory);
+
+  // Header scroll effect
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
 
   // Gerir seleção de porção
   portionBtns.forEach(btn => {
@@ -1346,7 +1535,6 @@
           `;
         }
 
-        // Lista de ingredientes
         let ingredientsList = '';
         if (ingredientes && ingredientes.length > 0) {
           ingredientsList = `
@@ -1367,9 +1555,9 @@
 
         const porcaoLabel = {
           'pequena': '🥣 Pequena',
-          'media': '🍽️ Média',
-          'grande': '🍱 Grande'
-        }[porcao || selectedPortion] || '🍽️ Média';
+          'media': '🥗 Média',
+          'grande': '🍲 Grande'
+        }[porcao || selectedPortion] || '🥗 Média';
 
         resultBox.innerHTML = `
           ${sourceBadge}
@@ -1427,7 +1615,6 @@
     }
   });
 
-  // FUNÇÕES DE HISTÓRICO
   function saveToHistory(analysis) {
     let history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
     history.unshift(analysis);
@@ -1530,9 +1717,9 @@
 
     const porcaoLabel = {
       'pequena': '🥣 Pequena',
-      'media': '🍽️ Média',
-      'grande': '🍱 Grande'
-    }[item.porcao || 'media'] || '🍽️ Média';
+      'media': '🥗 Média',
+      'grande': '🍲 Grande'
+    }[item.porcao || 'media'] || '🥗 Média';
 
     resultBox.innerHTML = `
       ${sourceBadge}
@@ -1563,7 +1750,7 @@
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% VDR</div>
         </div>
         <div class="macro-item">
-          <div class="macro-label"> Gorduras</div>
+          <div class="macro-label">🥑 Gorduras</div>
           <div class="macro-value">${item.gorduras_g}<span class="macro-unit">g</span></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% VDR</div>
         </div>
@@ -1587,7 +1774,6 @@
     }
   }
 
-  // MOBILE MENU
   function toggleMobileMenu() {
     const overlay = document.getElementById('mobileMenuOverlay');
     const menu = document.getElementById('mobileMenu');
@@ -1596,7 +1782,6 @@
     document.body.style.overflow = menu.classList.contains('show') ? 'hidden' : '';
   }
 
-  // Fechar menu com ESC
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const menu = document.getElementById('mobileMenu');
