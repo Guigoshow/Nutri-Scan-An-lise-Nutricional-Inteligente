@@ -455,15 +455,6 @@
     overflow: hidden;
   }
 
-  .portion-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
   .portion-btn:hover {
     border-color: var(--primary);
     color: var(--primary-light);
@@ -608,10 +599,18 @@
   /* UPLOAD */
   .upload-section { margin-bottom: 24px; }
 
+  /* NOVO: Upload buttons grid */
+  .upload-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
   .drop-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
-    padding: 48px 24px;
+    padding: 24px 16px;
     text-align: center;
     cursor: pointer;
     transition: var(--transition);
@@ -650,8 +649,8 @@
   }
 
   .drop-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 36px;
+    margin-bottom: 10px;
     display: block;
     opacity: 0.9;
     transition: var(--transition);
@@ -662,7 +661,7 @@
   }
 
   .drop-text {
-    font-size: 15px;
+    font-size: 13px;
     color: var(--text-muted);
   }
 
@@ -670,14 +669,63 @@
     color: var(--text);
     font-weight: 600;
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  /* Drop zone para drag & drop (desktop) */
+  .drop-zone-full {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--card);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .drop-zone-full::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .drop-zone-full:hover, .drop-zone-full.dragover {
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .drop-zone-full:hover::before, .drop-zone-full.dragover::before {
+    opacity: 1;
+  }
+
+  .drop-zone-full input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-zone-full .drop-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
   }
 
   .drop-hint {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
-    margin-top: 12px;
-    opacity: 0.8;
+    margin-top: 8px;
+    opacity: 0.7;
   }
 
   .preview-container {
@@ -720,19 +768,6 @@
     margin-top: 24px;
     position: relative;
     overflow: hidden;
-  }
-
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .btn:hover:not(:disabled)::before {
-    opacity: 1;
   }
 
   .btn:hover:not(:disabled) {
@@ -1142,11 +1177,14 @@
 
     h1 { font-size: 22px; }
 
-    .drop-zone { padding: 40px 20px; }
+    .drop-zone { padding: 20px 12px; }
+    .drop-zone-full { padding: 24px 16px; }
 
     .macros-grid { grid-template-columns: 1fr; }
 
     .portion-options { grid-template-columns: 1fr; }
+
+    .upload-buttons { grid-template-columns: 1fr; }
   }
 
   /* ACESSIBILIDADE */
@@ -1226,12 +1264,35 @@
         </div>
 
         <div class="upload-section">
-          <div class="drop-zone" id="dropZone">
-            <input type="file" id="fileInput" accept="image/*" capture="environment" />
-            <span class="drop-icon">📸</span>
+          <!-- NOVO: Dois botões separados - Câmara e Galeria -->
+          <div class="upload-buttons">
+            <!-- Botão CÂMARA -->
+            <div class="drop-zone" id="dropZoneCamera">
+              <input type="file" id="fileInputCamera" accept="image/*" capture="environment" />
+              <span class="drop-icon">📸</span>
+              <span class="drop-text">
+                <strong>Tirar foto</strong>
+                usa a câmara
+              </span>
+            </div>
+
+            <!-- Botão GALERIA -->
+            <div class="drop-zone" id="dropZoneGallery">
+              <input type="file" id="fileInputGallery" accept="image/*" />
+              <span class="drop-icon">🖼️</span>
+              <span class="drop-text">
+                <strong>Escolher da galeria</strong>
+                foto existente
+              </span>
+            </div>
+          </div>
+
+          <!-- Zona de drag & drop (apenas desktop) -->
+          <div class="drop-zone-full" id="dropZoneFull">
+            <input type="file" id="fileInputFull" accept="image/*" />
+            <span class="drop-icon">📁</span>
             <span class="drop-text">
-              <strong>Toca para escolher uma foto</strong>
-              ou arrasta para aqui
+              <strong>Ou arrasta uma imagem para aqui</strong>
             </span>
             <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
           </div>
@@ -1336,7 +1397,7 @@
           </ul>
 
           <p style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted);">
-            <strong>Como funciona:</strong> Tira uma foto da tua refeição, indica o tamanho da porção e a nossa inteligência artificial analisa cada ingrediente visível, estimando os pesos e calculando o valor nutricional total com base em dados nutricionais profissionais.
+            <strong>Como funciona:</strong> Tira uma foto da tua refeição (ou escolhe da galeria), indica o tamanho da porção e a nossa inteligência artificial analisa cada ingrediente visível, estimando os pesos e calculando o valor nutricional total com base em dados nutricionais profissionais.
           </p>
         </div>
       </div>
@@ -1349,8 +1410,13 @@
   </div>
 
 <script>
-  const dropZone = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
+  // Elementos DOM
+  const dropZoneCamera = document.getElementById('dropZoneCamera');
+  const dropZoneGallery = document.getElementById('dropZoneGallery');
+  const dropZoneFull = document.getElementById('dropZoneFull');
+  const fileInputCamera = document.getElementById('fileInputCamera');
+  const fileInputGallery = document.getElementById('fileInputGallery');
+  const fileInputFull = document.getElementById('fileInputFull');
   const preview = document.getElementById('preview');
   const previewContainer = document.getElementById('previewContainer');
   const analyzeBtn = document.getElementById('analyzeBtn');
@@ -1387,6 +1453,7 @@
     });
   });
 
+  // Comprimir imagem
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1419,26 +1486,44 @@
     });
   }
 
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFile(file);
-  });
+  // Função genérica para configurar um drop zone
+  function setupDropZone(dropZone, fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleFile(file);
+    });
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
 
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
 
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+  }
 
+  // Configurar todos os drop zones
+  setupDropZone(dropZoneCamera, fileInputCamera);
+  setupDropZone(dropZoneGallery, fileInputGallery);
+  setupDropZone(dropZoneFull, fileInputFull);
+
+  // Lidar com o ficheiro selecionado
   function handleFile(file) {
+    // Validar tipo de ficheiro
+    if (!file.type.startsWith('image/')) {
+      errorBox.textContent = 'Por favor, escolhe uma imagem válida.';
+      errorBox.classList.add('show');
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
     preview.src = previewUrl;
     previewContainer.classList.add('show');
@@ -1459,6 +1544,7 @@
       });
   }
 
+  // Analisar refeição
   analyzeBtn.addEventListener('click', async () => {
     if (!base64Image) {
       errorBox.textContent = 'Escolhe uma foto primeiro.';
@@ -1615,6 +1701,7 @@
     }
   });
 
+  // FUNÇÕES DE HISTÓRICO
   function saveToHistory(analysis) {
     let history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
     history.unshift(analysis);
