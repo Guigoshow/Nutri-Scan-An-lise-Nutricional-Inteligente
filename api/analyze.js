@@ -9,12 +9,19 @@ export default async function handler(req, res) {
   try {
     const { imageBase64, mimeType, portion = 'media' } = req.body;
 
-    if (!imageBase64) {
+    // Validação robusta
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
       return res.status(400).json({ error: 'Nenhuma imagem recebida.' });
     }
 
     if (imageBase64.length > 5000000) {
       return res.status(413).json({ error: 'Imagem demasiado grande.' });
+    }
+
+    // Validação de porção
+    const validPortions = ['pequena', 'media', 'grande'];
+    if (!validPortions.includes(portion)) {
+      return res.status(400).json({ error: 'Porção inválida.' });
     }
 
     // 🔒 CACHE: Hash da imagem + porção para consistência
@@ -42,21 +49,21 @@ export default async function handler(req, res) {
       'grande': 1.4
     };
 
-    const multiplier = portionMultipliers[portion] || 1.0;
+    const multiplier = portionMultipliers[portion];
     const portionLabel = {
       'pequena': 'pequena (reduz ~30%)',
       'media': 'média (quantidade padrão)',
       'grande': 'grande (aumenta ~40%)'
-    }[portion] || 'média';
+    }[portion];
 
-    // 🎯 PROMPT PROFISSIONAL COMPLETO
+    // 🎯 PROMPT PROFISSIONAL COMPLETO E OTIMIZADO
     const systemPrompt = `Analisas fotos de refeições com precisão nutricional profissional.
 
 METODOLOGIA OBRIGATÓRIA:
 1. Identifica CADA ingrediente visível separadamente
 2. Estima o peso de cada ingrediente em gramas (prato padrão ~25-28cm diâmetro)
 3. Calcula nutrientes baseado nos pesos
-4. Considera método de confeção visível (grelhado, cozido, frito, assado)
+4. Considera método de confeção visível (grelhado, cozido, frito, assado, cru)
 5. Valida coerência: calorias = (proteína×4 + hidratos×4 + gordura×9)
 
 CONTEXTO DA PORÇÃO: ${portionLabel}
@@ -65,19 +72,23 @@ REGRAS CRÍTICAS DE PRECISÃO:
 
 ✓ PROTEÍNAS (carne/peixe):
   - 100g cru = ~75g cozinhado (perde 25% água)
-  - Peito de frango grelhado: 165 kcal/100g
-  - Carne de vaca grelhada: 250 kcal/100g
-  - Peixe branco grelhado: 120 kcal/100g
-  - Salmão grelhado: 208 kcal/100g
+  - Peito de frango grelhado: 165 kcal/100g, 31g prot
+  - Carne de vaca grelhada: 250 kcal/100g, 26g prot
+  - Peixe branco grelhado: 120 kcal/100g, 22g prot
+  - Salmão grelhado: 208 kcal/100g, 20g prot
+  - Atum: 144 kcal/100g, 30g prot
+  - Porco: 242 kcal/100g, 27g prot
+  - Ovos (1 unidade ~50g): 72 kcal, 6g prot
 
 ✓ HIDRATOS (arroz/massa/batata):
   - 100g cru = ~300g cozinhado (absorve água)
-  - Arroz branco cozinhado: 130 kcal/100g
-  - Arroz integral cozinhado: 123 kcal/100g
-  - Massa cozinhada: 160 kcal/100g
-  - Batata cozida: 87 kcal/100g
-  - Batata frita: 312 kcal/100g
-  - Pão: 265 kcal/100g
+  - Arroz branco cozinhado: 130 kcal/100g, 28g hidr
+  - Arroz integral cozinhado: 123 kcal/100g, 26g hidr
+  - Massa cozinhada: 160 kcal/100g, 31g hidr
+  - Batata cozida: 87 kcal/100g, 20g hidr
+  - Batata frita: 312 kcal/100g, 41g hidr
+  - Pão (1 fatia ~30g): 80 kcal, 15g hidr
+  - Batata-doce: 86 kcal/100g, 20g hidr
 
 ✓ GORDURAS VISÍVEIS:
   - 1 colher sopa azeite = 10g = 90 kcal
@@ -85,6 +96,8 @@ REGRAS CRÍTICAS DE PRECISÃO:
   - Queijo ralado: 30g = ~120 kcal
   - Manteiga: 10g = 75 kcal
   - Abacate: 160 kcal/100g
+  - Frutos secos (30g): ~180 kcal
+  - Azeitonas (10 unidades): ~50 kcal
 
 ✓ VEGETAIS:
   - Brócolos/espinafres: ~35 kcal/100g
@@ -92,11 +105,23 @@ REGRAS CRÍTICAS DE PRECISÃO:
   - Ervilhas: ~81 kcal/100g
   - Tomate: ~18 kcal/100g
   - Alface: ~15 kcal/100g
+  - Pepino: ~16 kcal/100g
+  - Pimento: ~31 kcal/100g
+  - Cebola: ~40 kcal/100g
 
 ✓ FRUTAS:
   - Maçã: ~52 kcal/100g
   - Banana: ~89 kcal/100g
   - Laranja: ~47 kcal/100g
+  - Morangos: ~32 kcal/100g
+  - Uvas: ~69 kcal/100g
+
+✓ BEBIDAS:
+  - Sumo natural (200ml): ~80-100 kcal
+  - Refrigerante (330ml): ~140 kcal
+  - Cerveja (330ml): ~140 kcal
+  - Vinho (150ml): ~120 kcal
+  - Água: 0 kcal
 
 NUNCA SUBESTIMES:
 - Molhos e temperos (50-200 kcal)
@@ -104,10 +129,19 @@ NUNCA SUBESTIMES:
 - Queijo (100-150 kcal)
 - Frutos secos (30g = ~180 kcal)
 - Fruta seca (30g = ~90 kcal)
+- Bebidas calóricas (100-200 kcal)
+
+DETEÇÃO DE ALERGÉNIOS:
+- Glúten: pão, massa, bolachas, cerveja
+- Lactose: leite, queijo, iogurte, manteiga
+- Frutos secos: amêndoas, nozes, amendoins
+- Marisco: camarão, amêijoas, mexilhão
+- Soja: tofu, molho de soja
+- Ovos: omeletes, bolos
 
 IDENTIFICAÇÃO DE PRODUTOS EMBALADOS:
 - Se vês marca/nome exato, indica em "marca_sugerida" e "produto_sugerido"
-- Exemplo: "Danone Activia", "Nestlé Fitness"
+- Exemplo: "Danone Activia", "Nestlé Fitness", "Compal"
 
 FORMATO JSON ESTRITO (sem markdown, sem texto extra):
 {
@@ -116,6 +150,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
   "ingredientes": [
     {"nome": "ingrediente", "peso_g": numero, "calorias": numero}
   ],
+  "alergenios": ["gluten", "lactose", "frutos_secos", "marisco", "soja", "ovos"] ou [],
   "marca_sugerida": "marca ou null",
   "produto_sugerido": "nome do produto ou null",
   "calorias": numero_inteiro,
@@ -123,7 +158,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
   "hidratos_g": numero_inteiro,
   "gorduras_g": numero_inteiro,
   "confianca": 1-5,
-  "sugestao": "sugestão prática para próxima refeição"
+  "sugestao": "sugestão prática e contextualizada para próxima refeição"
 }
 
 EXEMPLO PRATO COZINHADO:
@@ -135,6 +170,7 @@ EXEMPLO PRATO COZINHADO:
     {"nome": "arroz branco", "peso_g": 200, "calorias": 260},
     {"nome": "brócolos", "peso_g": 100, "calorias": 35}
   ],
+  "alergenios": [],
   "marca_sugerida": null,
   "produto_sugerido": null,
   "calorias": 543,
@@ -142,7 +178,23 @@ EXEMPLO PRATO COZINHADO:
   "hidratos_g": 62,
   "gorduras_g": 8,
   "confianca": 4,
-  "sugestao": "Refeição equilibrada. Na próxima, adiciona mais vegetais variados."
+  "sugestao": "Refeição equilibrada. Na próxima, adiciona mais vegetais variados e uma fonte de gordura saudável como azeite."
+}
+
+EXEMPLO PRODUTO EMBALADO:
+{
+  "tipo": "produto_embalado",
+  "descricao": "Iogurte líquido natural Danone Activia",
+  "ingredientes": [],
+  "alergenios": ["lactose"],
+  "marca_sugerida": "Danone",
+  "produto_sugerido": "Activia Natural",
+  "calorias": 60,
+  "proteinas_g": 4,
+  "hidratos_g": 10,
+  "gorduras_g": 0,
+  "confianca": 5,
+  "sugestao": "Boa escolha! Adiciona fruta fresca para mais fibra e vitaminas."
 }`;
 
     // 🔧 FUNÇÃO DE ANÁLISE ÚNICA
@@ -182,26 +234,51 @@ EXEMPLO PRATO COZINHADO:
       return JSON.parse(text);
     }
 
-    // 🎯 CONSENSO: 3 análises + média
+    // 🎯 CONSENSO: 3 análises + média com deteção de outliers
     async function analyzeWithConsensus() {
       const promises = [analyzeOnce(), analyzeOnce(), analyzeOnce()];
       const settled = await Promise.allSettled(promises);
       
-      const results = settled
+      let results = settled
         .filter(r => r.status === 'fulfilled')
         .map(r => r.value);
 
       if (results.length === 0) throw new Error('Todas as análises falharam');
+
+      // Deteção de outliers (descartar valores muito diferentes da média)
+      if (results.length >= 3) {
+        const avgCalorias = results.reduce((sum, r) => sum + (r.calorias || 0), 0) / results.length;
+        const threshold = avgCalorias * 0.3; // 30% de tolerância
+        
+        results = results.filter(r => {
+          const diff = Math.abs((r.calorias || 0) - avgCalorias);
+          return diff <= threshold;
+        });
+
+        if (results.length === 0) {
+          // Se todos foram descartados, usa todos
+          results = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+        }
+      }
 
       // Média dos valores numéricos
       const avg = (key) => Math.round(
         results.reduce((sum, r) => sum + (r[key] || 0), 0) / results.length
       );
 
+      // Combina alergénios de todas as análises
+      const allAlergenios = new Set();
+      results.forEach(r => {
+        if (Array.isArray(r.alergenios)) {
+          r.alergenios.forEach(a => allAlergenios.add(a));
+        }
+      });
+
       return {
         tipo: results[0].tipo || 'prato_cozinhado',
         descricao: results[0].descricao || '',
         ingredientes: results[0].ingredientes || [],
+        alergenios: Array.from(allAlergenios),
         marca_sugerida: results[0].marca_sugerida || null,
         produto_sugerido: results[0].produto_sugerido || null,
         calorias: avg('calorias'),
@@ -222,41 +299,55 @@ EXEMPLO PRATO COZINHADO:
       const missing = required.filter(f => !(f in analysis));
       if (missing.length > 0) throw new Error(`Campos em falta: ${missing.join(', ')}`);
 
-      // INTEGRAÇÃO OPEN FOOD FACTS
+      // Validação de tipos
+      if (typeof analysis.descricao !== 'string') throw new Error('Descrição inválida');
+      if (typeof analysis.calorias !== 'number' || analysis.calorias < 0) throw new Error('Calorias inválidas');
+      if (!['produto_embalado', 'prato_cozinhado'].includes(analysis.tipo)) throw new Error('Tipo inválido');
+
+      // INTEGRAÇÃO OPEN FOOD FACTS (com múltiplas tentativas)
       if (analysis.tipo === 'produto_embalado' && (analysis.marca_sugerida || analysis.produto_sugerido)) {
-        const query = `${analysis.marca_sugerida || ''} ${analysis.produto_sugerido || ''}`.trim();
+        const queries = [
+          `${analysis.marca_sugerida || ''} ${analysis.produto_sugerido || ''}`.trim(),
+          analysis.produto_sugerido || '',
+          analysis.marca_sugerida || ''
+        ].filter(q => q.length > 2);
+
+        let offData = null;
         
-        if (query.length > 2) {
+        for (const query of queries) {
           console.log('🔍 Buscando Open Food Facts:', query);
           const produtos = await searchProduct(query);
           
           if (produtos.length > 0) {
-            const offData = extractNutritionData(produtos[0]);
+            offData = extractNutritionData(produtos[0]);
             console.log('✅ Produto encontrado:', offData.nome);
-            
-            const diff = Math.abs(analysis.calorias - offData.calorias) / analysis.calorias;
-
-            if (diff > 0.2) {
-              console.log(`📊 Ajustando valores OFF: diferença ${(diff * 100).toFixed(1)}%`);
-              analysis.calorias = Math.round(offData.calorias);
-              analysis.proteinas_g = Math.round(offData.proteinas);
-              analysis.hidratos_g = Math.round(offData.hidratos);
-              analysis.gorduras_g = Math.round(offData.gorduras);
-              analysis.fonte_dados = 'openfoodfacts';
-            } else {
-              console.log('✓ Valores IA validados por OFF');
-              analysis.fonte_dados = 'ia_validada';
-            }
-
-            analysis.produto_oficial = {
-              nome: offData.nome,
-              marca: offData.marca,
-              codigoBarras: offData.codigoBarras
-            };
-          } else {
-            console.log('⚠️ Produto não encontrado no OFF');
-            analysis.fonte_dados = 'ia_estimativa';
+            break;
           }
+        }
+        
+        if (offData) {
+          const diff = Math.abs(analysis.calorias - offData.calorias) / analysis.calorias;
+
+          if (diff > 0.2) {
+            console.log(`📊 Ajustando valores OFF: diferença ${(diff * 100).toFixed(1)}%`);
+            analysis.calorias = Math.round(offData.calorias);
+            analysis.proteinas_g = Math.round(offData.proteinas);
+            analysis.hidratos_g = Math.round(offData.hidratos);
+            analysis.gorduras_g = Math.round(offData.gorduras);
+            analysis.fonte_dados = 'openfoodfacts';
+          } else {
+            console.log('✓ Valores IA validados por OFF');
+            analysis.fonte_dados = 'ia_validada';
+          }
+
+          analysis.produto_oficial = {
+            nome: offData.nome,
+            marca: offData.marca,
+            codigoBarras: offData.codigoBarras
+          };
+        } else {
+          console.log('⚠️ Produto não encontrado no OFF');
+          analysis.fonte_dados = 'ia_estimativa';
         }
       } else {
         analysis.fonte_dados = 'ia_estimativa';
@@ -271,23 +362,24 @@ EXEMPLO PRATO COZINHADO:
         analysis.gorduras_g = Math.round(analysis.gorduras_g * multiplier);
       }
 
-      // VALIDAÇÃO DE COERÊNCIA CALÓRICA
+      // VALIDAÇÃO DE COERÊNCIA CALÓRICA (mais rigorosa)
       const calcCal = (analysis.proteinas_g || 0) * 4 + 
                       (analysis.hidratos_g || 0) * 4 + 
                       (analysis.gorduras_g || 0) * 9;
       
       const diffPct = Math.abs(analysis.calorias - calcCal) / analysis.calorias * 100;
-      if (diffPct > 15) {
+      if (diffPct > 10) { // Reduzido de 15% para 10%
         console.warn(`⚠️ Incoerência calórica ${diffPct.toFixed(1)}%. Ajustando...`);
         analysis.calorias = Math.round(calcCal);
       }
 
       // Campos padrão
       analysis.confianca = Math.max(1, Math.min(5, Math.round(analysis.confianca || 3)));
-      analysis.sugestao = analysis.sugestao || 'Mantém uma alimentação equilibrada.';
+      analysis.sugestao = analysis.sugestao || 'Mantém uma alimentação equilibrada ao longo do dia.';
       analysis.marca_sugerida = analysis.marca_sugerida || null;
       analysis.produto_sugerido = analysis.produto_sugerido || null;
-      analysis.ingredientes = analysis.ingredientes || [];
+      analysis.alergenios = Array.isArray(analysis.alergenios) ? analysis.alergenios : [];
+      analysis.ingredientes = Array.isArray(analysis.ingredientes) ? analysis.ingredientes : [];
       analysis.porcao = portionLabel;
 
       // 🔒 GUARDAR EM CACHE
@@ -299,12 +391,13 @@ EXEMPLO PRATO COZINHADO:
       analysis = {
         descricao: 'Não consegui identificar. Tenta foto mais nítida.',
         ingredientes: [],
+        alergenios: [],
         calorias: 0,
         proteinas_g: 0,
         hidratos_g: 0,
         gorduras_g: 0,
         confianca: 1,
-        sugestao: 'Tira foto com melhor iluminação.',
+        sugestao: 'Tira foto com melhor iluminação e enquadramento.',
         tipo: 'prato_cozinhado',
         fonte_dados: 'ia_estimativa',
         marca_sugerida: null,
