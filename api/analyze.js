@@ -1,4 +1,3 @@
-// Importa funções do Open Food Facts
 import { searchProduct, extractNutritionData } from '../lib/openfoodfacts.js';
 import { createHash } from 'crypto';
 
@@ -18,19 +17,16 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: 'Imagem demasiado grande.' });
     }
 
-    // 🔒 CACHE: Gera hash da imagem para evitar análises duplicadas
+    // 🔒 CACHE: Hash da imagem para consistência
     const imageHash = createHash('sha256')
-      .update(imageBase64.slice(0, 5000)) // Hash dos primeiros 5000 chars
+      .update(imageBase64.slice(0, 5000) + portion)
       .digest('hex');
 
-    const cacheKey = `analysis_${imageHash}_${portion}`;
-
-    // Tenta obter do cache (localStorage do servidor não existe, mas podemos usar memória)
-    // Em produção, usar Redis ou similar. Aqui usamos variável global simples.
+    const cacheKey = `analysis_${imageHash}`;
     if (!global.__nutriCache) global.__nutriCache = {};
     
     if (global.__nutriCache[cacheKey]) {
-      console.log('✅ Resultado em cache (mesma foto + mesma porção)');
+      console.log('✅ Resultado em cache');
       return res.status(200).json({ 
         analysis: global.__nutriCache[cacheKey],
         cached: true 
@@ -53,7 +49,7 @@ export default async function handler(req, res) {
       'grande': 'grande (aumenta ~40%)'
     }[portion] || 'média';
 
-    // Prompt profissional otimizado
+    // 🎯 PROMPT PROFISSIONAL
     const systemPrompt = `Analisas fotos de refeições com precisão nutricional profissional.
 
 METODOLOGIA OBRIGATÓRIA:
@@ -64,15 +60,14 @@ METODOLOGIA OBRIGATÓRIA:
 5. Valida coerência: calorias = (proteína×4 + hidratos×4 + gordura×9)
 
 CONTEXTO DA PORÇÃO: ${portionLabel}
-Ajusta todos os pesos e calorias em conformidade.
 
 REGRAS CRÍTICAS DE PRECISÃO:
 
 ✓ PROTEÍNAS (carne/peixe):
   - 100g cru = ~75g cozinhado (perde 25% água)
-  - Peito de frango grelhado: 165 kcal/100g cozinhado
-  - Carne de vaca grelhada: 250 kcal/100g cozinhado
-  - Peixe branco grelhado: 120 kcal/100g cozinhado
+  - Peito de frango grelhado: 165 kcal/100g
+  - Carne de vaca grelhada: 250 kcal/100g
+  - Peixe branco grelhado: 120 kcal/100g
 
 ✓ HIDRATOS (arroz/massa/batata):
   - 100g cru = ~300g cozinhado (absorve água)
@@ -82,8 +77,8 @@ REGRAS CRÍTICAS DE PRECISÃO:
   - Batata frita: 312 kcal/100g
 
 ✓ GORDURAS VISÍVEIS:
-  - 1 colher sopa azeite/óleo = 10g = 90 kcal
-  - Molhos cremosos: adiciona 50-150 kcal
+  - 1 colher sopa azeite = 10g = 90 kcal
+  - Molhos cremosos: 50-150 kcal
   - Queijo ralado: 30g = ~120 kcal
 
 ✓ VEGETAIS:
@@ -95,6 +90,10 @@ NUNCA SUBESTIMES:
 - Molhos e temperos (50-200 kcal)
 - Azeite/óleo de confeção (90-180 kcal)
 - Queijo (100-150 kcal)
+- Frutos secos (30g = ~180 kcal)
+
+IDENTIFICAÇÃO DE PRODUTOS EMBALADOS:
+- Se vês marca/nome exato, indica em "marca_sugerida" e "produto_sugerido"
 
 FORMATO JSON ESTRITO (sem markdown, sem texto extra):
 {
@@ -124,25 +123,16 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
         body: JSON.stringify({
           model: 'qwen/qwen3.6-27b',
           reasoning_effort: 'none',
-          temperature: 0, // 🔒 ZERO para máxima consistência
-          seed: 42, // 🔒 SEED FIXO para determinismo
-          response_format: { type: 'json_object' }, // 🔒 FORÇA JSON válido
+          temperature: 0,
+          seed: 42,
+          response_format: { type: 'json_object' },
           messages: [
-            {
-              role: 'system',
-              content: systemPrompt,
-            },
+            { role: 'system', content: systemPrompt },
             {
               role: 'user',
               content: [
-                {
-                  type: 'text',
-                  text: `Analisa esta foto (porção ${portionLabel}) e devolve JSON.`,
-                },
-                {
-                  type: 'image_url',
-                  image_url: { url: dataUri },
-                },
+                { type: 'text', text: `Analisa esta foto (porção ${portionLabel}) e devolve JSON.` },
+                { type: 'image_url', image_url: { url: dataUri } },
               ],
             },
           ],
@@ -150,106 +140,66 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
       });
 
       const groqData = await groqResponse.json();
+      if (!groqResponse.ok) throw new Error('Erro Groq');
 
-      if (!groqResponse.ok) {
-        throw new Error('Erro Groq: ' + JSON.stringify(groqData));
-      }
-
-      let analysisText = groqData.choices?.[0]?.message?.content?.trim() || '';
-      analysisText = analysisText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      analysisText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-      return JSON.parse(analysisText);
+      let text = groqData.choices?.[0]?.message?.content?.trim() || '';
+      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      return JSON.parse(text);
     }
 
-    // 🔧 MÉTODO: Faz 3 análises e calcula a média (reduz variabilidade)
+    // 🎯 CONSENSO: 3 análises + média
     async function analyzeWithConsensus() {
-      const results = [];
-      const errors = [];
-
-      // Faz 3 chamadas paralelas
       const promises = [analyzeOnce(), analyzeOnce(), analyzeOnce()];
       const settled = await Promise.allSettled(promises);
+      
+      const results = settled
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value);
 
-      settled.forEach((result, i) => {
-        if (result.status === 'fulfilled') {
-          results.push(result.value);
-        } else {
-          errors.push(result.reason);
-        }
-      });
+      if (results.length === 0) throw new Error('Todas as análises falharam');
 
-      if (results.length === 0) {
-        throw new Error('Todas as análises falharam: ' + errors.join(', '));
-      }
-
-      // Calcula a média dos resultados
-      const avgCalorias = Math.round(results.reduce((sum, r) => sum + (r.calorias || 0), 0) / results.length);
-      const avgProteinas = Math.round(results.reduce((sum, r) => sum + (r.proteinas_g || 0), 0) / results.length);
-      const avgHidratos = Math.round(results.reduce((sum, r) => sum + (r.hidratos_g || 0), 0) / results.length);
-      const avgGorduras = Math.round(results.reduce((sum, r) => sum + (r.gorduras_g || 0), 0) / results.length);
-
-      // Usa a descrição da primeira análise (mais completa geralmente)
-      const bestDescription = results[0].descricao || '';
-      const bestTipo = results[0].tipo || 'prato_cozinhado';
-      const bestIngredientes = results[0].ingredientes || [];
-      const bestConfianca = Math.round(results.reduce((sum, r) => sum + (r.confianca || 3), 0) / results.length);
-      const bestSugestao = results[0].sugestao || '';
+      // Média dos valores numéricos
+      const avg = (key) => Math.round(
+        results.reduce((sum, r) => sum + (r[key] || 0), 0) / results.length
+      );
 
       return {
-        tipo: bestTipo,
-        descricao: bestDescription,
-        ingredientes: bestIngredientes,
+        tipo: results[0].tipo || 'prato_cozinhado',
+        descricao: results[0].descricao || '',
+        ingredientes: results[0].ingredientes || [],
         marca_sugerida: results[0].marca_sugerida || null,
         produto_sugerido: results[0].produto_sugerido || null,
-        calorias: avgCalorias,
-        proteinas_g: avgProteinas,
-        hidratos_g: avgHidratos,
-        gorduras_g: avgGorduras,
-        confianca: bestConfianca,
-        sugestao: bestSugestao
+        calorias: avg('calorias'),
+        proteinas_g: avg('proteinas_g'),
+        hidratos_g: avg('hidratos_g'),
+        gorduras_g: avg('gorduras_g'),
+        confianca: avg('confianca'),
+        sugestao: results[0].sugestao || ''
       };
     }
 
     let analysis;
-
     try {
-      // 🔧 USA ANÁLISE COM CONSENSO (3 chamadas + média)
       analysis = await analyzeWithConsensus();
 
       // Validação de campos
-      const requiredFields = ['descricao', 'calorias', 'proteinas_g', 'hidratos_g', 'gorduras_g', 'tipo'];
-      const missingFields = requiredFields.filter(field => !(field in analysis));
-
-      if (missingFields.length > 0) {
-        throw new Error(`Campos em falta: ${missingFields.join(', ')}`);
-      }
-
-      if (typeof analysis.descricao !== 'string') {
-        throw new Error('Campo "descricao" inválido');
-      }
-      if (typeof analysis.calorias !== 'number' || analysis.calorias < 0) {
-        throw new Error('Campo "calorias" inválido');
-      }
-      if (!['produto_embalado', 'prato_cozinhado'].includes(analysis.tipo)) {
-        throw new Error('Campo "tipo" inválido');
-      }
+      const required = ['descricao', 'calorias', 'proteinas_g', 'hidratos_g', 'gorduras_g', 'tipo'];
+      const missing = required.filter(f => !(f in analysis));
+      if (missing.length > 0) throw new Error(`Campos em falta: ${missing.join(', ')}`);
 
       // INTEGRAÇÃO OPEN FOOD FACTS
       if (analysis.tipo === 'produto_embalado' && (analysis.marca_sugerida || analysis.produto_sugerido)) {
         const query = `${analysis.marca_sugerida || ''} ${analysis.produto_sugerido || ''}`.trim();
         
         if (query.length > 2) {
-          console.log('🔍 Buscando Open Food Facts:', query);
           const produtos = await searchProduct(query);
-
           if (produtos.length > 0) {
             const offData = extractNutritionData(produtos[0]);
-            console.log('✅ Produto encontrado:', offData.nome);
+            const diff = Math.abs(analysis.calorias - offData.calorias) / analysis.calorias;
 
-            const diffCalorias = Math.abs(analysis.calorias - offData.calorias) / analysis.calorias;
-
-            if (diffCalorias > 0.2) {
+            if (diff > 0.2) {
               analysis.calorias = Math.round(offData.calorias);
               analysis.proteinas_g = Math.round(offData.proteinas);
               analysis.hidratos_g = Math.round(offData.hidratos);
@@ -281,15 +231,13 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
       }
 
       // VALIDAÇÃO DE COERÊNCIA CALÓRICA
-      const calculatedCalories =
-        (analysis.proteinas_g || 0) * 4 +
-        (analysis.hidratos_g || 0) * 4 +
-        (analysis.gorduras_g || 0) * 9;
-
-      const calorieDiffPercent = Math.abs(analysis.calorias - calculatedCalories) / analysis.calorias * 100;
-
-      if (calorieDiffPercent > 15) {
-        analysis.calorias = Math.round(calculatedCalories);
+      const calcCal = (analysis.proteinas_g || 0) * 4 + 
+                      (analysis.hidratos_g || 0) * 4 + 
+                      (analysis.gorduras_g || 0) * 9;
+      
+      const diffPct = Math.abs(analysis.calorias - calcCal) / analysis.calorias * 100;
+      if (diffPct > 15) {
+        analysis.calorias = Math.round(calcCal);
       }
 
       // Campos padrão
@@ -300,14 +248,13 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
       analysis.ingredientes = analysis.ingredientes || [];
       analysis.porcao = portionLabel;
 
-      // 🔒 GUARDA NO CACHE
+      // 🔒 GUARDAR EM CACHE
       global.__nutriCache[cacheKey] = analysis;
-      console.log('💾 Resultado guardado em cache');
 
-    } catch (parseError) {
-      console.error('❌ Erro:', parseError.message);
+    } catch (err) {
+      console.error('Erro:', err.message);
       analysis = {
-        descricao: 'Não consegui identificar bem. Tenta foto mais nítida.',
+        descricao: 'Não consegui identificar. Tenta foto mais nítida.',
         ingredientes: [],
         calorias: 0,
         proteinas_g: 0,
@@ -326,15 +273,11 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
     return res.status(200).json({ analysis });
 
   } catch (error) {
-    console.error(' Erro /api/analyze:', error);
-    return res.status(500).json({ error: 'Erro na análise. Tenta novamente.' });
+    console.error('Erro:', error);
+    return res.status(500).json({ error: 'Erro na análise.' });
   }
 }
 
 export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '5mb',
-    },
-  },
+  api: { bodyParser: { sizeLimit: '5mb' } },
 };
