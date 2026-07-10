@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0f1410" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="description" content="Análise nutricional inteligente com IA" />
 <title>Nutri Scan — Análise Nutricional Inteligente</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>" />
 <style>
   :root {
     --bg: #0f1410;
@@ -20,7 +22,10 @@
     --border: #2d352f;
     --error: #ef4444;
     --error-bg: rgba(239, 68, 68, 0.1);
+    --success: #10b981;
+    --warning: #f59e0b;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
     --radius: 16px;
     --radius-sm: 10px;
     --header-height: 64px;
@@ -31,7 +36,7 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: linear-gradient(135deg, var(--bg) 0%, #1a1f1b 100%);
     color: var(--text);
     min-height: 100vh;
@@ -47,6 +52,7 @@
     height: var(--header-height);
     background: rgba(26, 31, 27, 0.95);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     z-index: 1000;
     display: flex;
@@ -63,7 +69,10 @@
     align-items: center;
     gap: 12px;
     text-decoration: none;
+    transition: var(--transition);
   }
+
+  .header-brand:hover { transform: scale(1.02); }
 
   .header-logo {
     width: 40px;
@@ -75,17 +84,29 @@
     justify-content: center;
     font-size: 22px;
     box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+    transition: transform 0.3s;
+  }
+
+  .header-brand:hover .header-logo {
+    transform: rotate(-5deg) scale(1.05);
+  }
+
+  .header-title {
+    display: flex;
+    flex-direction: column;
   }
 
   .header-title-main {
     font-size: 18px;
     font-weight: 700;
     color: var(--text);
+    letter-spacing: -0.3px;
   }
 
   .header-title-sub {
     font-size: 11px;
     color: var(--text-muted);
+    font-weight: 500;
   }
 
   .header-nav {
@@ -102,17 +123,25 @@
     padding: 8px 14px;
     border-radius: var(--radius-sm);
     transition: var(--transition);
+    border: 1px solid transparent;
   }
 
   .header-nav a:hover {
     color: var(--primary-light);
     background: rgba(127, 176, 105, 0.1);
+    border-color: rgba(127, 176, 105, 0.2);
   }
 
   .header-cta {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white !important;
+    border: none !important;
     box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+  }
+
+  .header-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.4);
   }
 
   .menu-toggle {
@@ -124,6 +153,11 @@
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
+    transition: var(--transition);
+  }
+
+  .menu-toggle:hover {
+    background: rgba(127, 176, 105, 0.1);
   }
 
   /* MOBILE MENU */
@@ -133,10 +167,16 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s;
   }
 
-  .mobile-menu-overlay.show { display: block; }
+  .mobile-menu-overlay.show {
+    display: block;
+    opacity: 1;
+  }
 
   .mobile-menu {
     position: fixed;
@@ -164,12 +204,26 @@
     border-bottom: 1px solid var(--border);
   }
 
+  .mobile-menu-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
   .mobile-menu-close {
     background: none;
     border: none;
     color: var(--text-muted);
     font-size: 24px;
     cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+
+  .mobile-menu-close:hover {
+    background: rgba(127, 176, 105, 0.1);
+    color: var(--primary-light);
   }
 
   .mobile-menu-nav {
@@ -189,11 +243,24 @@
     font-weight: 500;
     border-radius: 12px;
     transition: var(--transition);
+    border: 1px solid transparent;
   }
 
   .mobile-menu-nav a:hover {
     background: rgba(127, 176, 105, 0.1);
+    border-color: rgba(127, 176, 105, 0.2);
     color: var(--primary-light);
+  }
+
+  .mobile-menu-nav-icon { font-size: 20px; }
+
+  .mobile-menu-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
   }
 
   /* CONTAINER */
@@ -217,6 +284,7 @@
     padding: 28px 24px;
     box-shadow: var(--shadow);
     margin-bottom: 24px;
+    transition: var(--transition);
   }
 
   .header-section {
@@ -272,6 +340,12 @@
   .section {
     margin-bottom: 40px;
     scroll-margin-top: 80px;
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .section-title {
@@ -304,10 +378,24 @@
     overflow: hidden;
   }
 
-  .drop-zone:hover {
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--primary);
     background: rgba(127, 176, 105, 0.05);
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .drop-zone:hover::before, .drop-zone.dragover::before {
+    opacity: 1;
   }
 
   .drop-zone input {
@@ -323,6 +411,12 @@
     font-size: 36px;
     margin-bottom: 10px;
     display: block;
+    opacity: 0.9;
+    transition: var(--transition);
+  }
+
+  .drop-zone:hover .drop-icon {
+    transform: scale(1.1);
   }
 
   .drop-text {
@@ -348,11 +442,27 @@
     background: var(--card);
     position: relative;
     overflow: hidden;
+    margin-bottom: 12px;
   }
 
-  .drop-zone-full:hover {
+  .drop-zone-full::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .drop-zone-full:hover, .drop-zone-full.dragover {
     border-color: var(--primary);
     background: rgba(127, 176, 105, 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .drop-zone-full:hover::before, .drop-zone-full.dragover::before {
+    opacity: 1;
   }
 
   .drop-zone-full input {
@@ -378,6 +488,7 @@
     display: none;
     animation: slideIn 0.4s ease-out;
     border: 2px solid var(--border);
+    position: relative;
   }
 
   .preview-container.show { display: block; }
@@ -401,6 +512,11 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
+    transition: var(--transition);
+  }
+
+  .portion-selector:hover {
+    border-color: rgba(127, 176, 105, 0.3);
   }
 
   .portion-label {
@@ -428,11 +544,14 @@
     cursor: pointer;
     transition: var(--transition);
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
 
   .portion-btn:hover {
     border-color: var(--primary);
     color: var(--primary-light);
+    transform: translateY(-2px);
   }
 
   .portion-btn.active {
@@ -440,6 +559,7 @@
     border-color: var(--primary);
     color: white;
     box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+    transform: translateY(-2px);
   }
 
   .portion-btn-icon {
@@ -462,6 +582,21 @@
     transition: var(--transition);
     box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
     margin-top: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover:not(:disabled)::before {
+    opacity: 1;
   }
 
   .btn:hover:not(:disabled) {
@@ -469,9 +604,16 @@
     box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
   }
 
+  .btn:active:not(:disabled) { transform: translateY(0); }
+
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .btn span {
+    position: relative;
+    z-index: 1;
   }
 
   /* SPINNER */
@@ -565,6 +707,7 @@
     font-weight: 700;
     color: var(--primary-light);
     text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   /* INGREDIENTES */
@@ -592,6 +735,12 @@
     padding: 8px 0;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
+    transition: var(--transition);
+  }
+
+  .ingredient-item:hover {
+    padding-left: 8px;
+    background: rgba(127, 176, 105, 0.05);
   }
 
   .ingredient-item:last-child { border-bottom: none; }
@@ -612,6 +761,13 @@
     padding: 16px;
     border-radius: 12px;
     border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .macro-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
   }
 
   .macro-label {
@@ -621,6 +777,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    font-weight: 500;
   }
 
   .macro-value {
@@ -632,6 +789,7 @@
   .macro-unit {
     font-size: 12px;
     color: var(--text-muted);
+    font-weight: 500;
   }
 
   .calories-highlight {
@@ -641,6 +799,21 @@
     border-radius: 12px;
     text-align: center;
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calories-highlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(127, 176, 105, 0.2) 0%, transparent 70%);
+    animation: pulse 3s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 
   .calories-label {
@@ -649,6 +822,8 @@
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
   }
 
   .calories-value {
@@ -656,6 +831,8 @@
     font-weight: 800;
     color: var(--primary-light);
     line-height: 1;
+    position: relative;
+    z-index: 1;
   }
 
   .calories-unit {
@@ -668,6 +845,8 @@
     font-size: 12px;
     color: var(--text-muted);
     margin-top: 8px;
+    position: relative;
+    z-index: 1;
   }
 
   .suggestion-box {
@@ -679,6 +858,11 @@
     font-size: 13px;
     line-height: 1.7;
     color: var(--text);
+    transition: var(--transition);
+  }
+
+  .suggestion-box:hover {
+    background: rgba(127, 176, 105, 0.12);
   }
 
   .suggestion-label {
@@ -700,11 +884,31 @@
     font-weight: 700;
     margin-bottom: 16px;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: var(--transition);
   }
 
-  .source-badge.openfoodfacts { background: #10b981; color: white; }
-  .source-badge.ia-validada { background: #7fb069; color: white; }
-  .source-badge.ia-estimativa { background: #8b957e; color: white; }
+  .source-badge:hover {
+    transform: scale(1.05);
+  }
+
+  .source-badge.openfoodfacts {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  }
+
+  .source-badge.ia-validada {
+    background: #7fb069;
+    color: white;
+    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+  }
+
+  .source-badge.ia-estimativa {
+    background: #8b957e;
+    color: white;
+    box-shadow: 0 2px 8px rgba(139, 149, 126, 0.3);
+  }
 
   .product-info {
     background: var(--surface);
@@ -712,6 +916,11 @@
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     margin-bottom: 20px;
+    transition: var(--transition);
+  }
+
+  .product-info:hover {
+    border-color: var(--primary);
   }
 
   .product-info-label {
@@ -719,6 +928,7 @@
     color: var(--text-muted);
     margin-bottom: 6px;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
     font-weight: 600;
   }
 
@@ -748,16 +958,36 @@
     padding: 16px;
     cursor: pointer;
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .history-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 0.3s;
   }
 
   .history-item:hover {
     border-color: var(--primary);
     transform: translateX(4px);
+    box-shadow: var(--shadow);
+  }
+
+  .history-item:hover::before {
+    transform: scaleY(1);
   }
 
   .history-item-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 8px;
   }
 
@@ -779,6 +1009,7 @@
     display: flex;
     gap: 16px;
     font-size: 13px;
+    flex-wrap: wrap;
   }
 
   .history-item-macro { color: var(--text-muted); }
@@ -799,11 +1030,13 @@
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
+    transition: var(--transition);
   }
 
   .clear-history-btn:hover {
     background: var(--error);
     color: white;
+    transform: scale(1.05);
   }
 
   .empty-state {
@@ -816,6 +1049,7 @@
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
+    animation: pulse 2s infinite;
   }
 
   /* FEATURES */
@@ -830,6 +1064,11 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    transition: var(--transition);
+  }
+
+  .feature-list li:hover {
+    padding-left: 8px;
   }
 
   .feature-list li:last-child { border-bottom: none; }
@@ -848,9 +1087,16 @@
     border-radius: 12px;
     font-size: 14px;
     color: var(--error);
+    animation: shake 0.5s ease-in-out;
   }
 
   .error.show { display: block; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
 
   .footer {
     text-align: center;
@@ -874,9 +1120,25 @@
     .logo-large { width: 76px; height: 76px; font-size: 38px; }
     h1 { font-size: 22px; }
     .drop-zone { padding: 20px 12px; }
+    .drop-zone-full { padding: 24px 16px; }
     .macros-grid { grid-template-columns: 1fr; }
     .portion-options { grid-template-columns: 1fr; }
     .upload-buttons { grid-template-columns: 1fr; }
+  }
+
+  /* ACESSIBILIDADE */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* FOCUS STATES */
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 </style>
 </head>
@@ -898,30 +1160,34 @@
       <a href="#analisar" class="header-cta">Começar</a>
     </nav>
 
-    <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+    <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir menu">☰</button>
   </header>
 
   <!-- MOBILE MENU -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
   <div class="mobile-menu" id="mobileMenu">
     <div class="mobile-menu-header">
-      <span style="font-size: 18px; font-weight: 700;">Menu</span>
-      <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
+      <span class="mobile-menu-title">Menu</span>
+      <button class="mobile-menu-close" onclick="toggleMobileMenu()" aria-label="Fechar menu">✕</button>
     </div>
     <nav class="mobile-menu-nav">
       <a href="#analisar" onclick="toggleMobileMenu()">
-        <span>📸</span>
+        <span class="mobile-menu-nav-icon">📸</span>
         <span>Analisar Refeição</span>
       </a>
       <a href="#historico" onclick="toggleMobileMenu()">
-        <span>📊</span>
+        <span class="mobile-menu-nav-icon">📊</span>
         <span>Histórico</span>
       </a>
       <a href="#sobre" onclick="toggleMobileMenu()">
-        <span>ℹ️</span>
+        <span class="mobile-menu-nav-icon">ℹ️</span>
         <span>Sobre</span>
       </a>
     </nav>
+    <div class="mobile-menu-footer">
+      Nutri Scan<br>
+      Análise inteligente de refeições
+    </div>
   </div>
 
   <!-- MAIN -->
@@ -986,7 +1252,9 @@
           </div>
         </div>
 
-        <button class="btn" id="analyzeBtn" disabled>Analisar refeição</button>
+        <button class="btn" id="analyzeBtn" disabled>
+          <span>Analisar refeição</span>
+        </button>
 
         <div class="spinner" id="spinner">
           <div class="spinner-dot"></div>
