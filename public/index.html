@@ -1107,6 +1107,90 @@
     margin-top: 40px;
   }
 
+  /* DAILY SUMMARY */
+  .daily-summary {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .daily-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .daily-summary-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .daily-summary-date {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .daily-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .daily-summary-item-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .daily-summary-item-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .daily-summary-item-value.highlight {
+    color: var(--primary-light);
+  }
+
+  .daily-summary-item-goal {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .progress-container {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .progress-bar-wrapper {
+    width: 100%;
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    transition: width 0.5s ease;
+  }
+
+  .progress-bar.warning {
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+  }
+
   /* RESPONSIVE */
   @media (max-width: 640px) {
     :root { --header-height: 56px; }
@@ -1124,6 +1208,7 @@
     .macros-grid { grid-template-columns: 1fr; }
     .portion-options { grid-template-columns: 1fr; }
     .upload-buttons { grid-template-columns: 1fr; }
+    .daily-summary-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   /* ACESSIBILIDADE */
@@ -1271,43 +1356,44 @@
     <!-- HISTÓRICO -->
     <section id="historico" class="section">
       <div class="card">
-        <div class="section-title">
-          <!-- NOVO: Resumo Diário -->
-<div id="dailySummary" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-    <h3 style="font-size: 16px; font-weight: 700; color: var(--text);">📅 Resumo de Hoje</h3>
-    <span id="dailyDate" style="font-size: 12px; color: var(--text-muted);"></span>
-  </div>
-  
-  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; margin-bottom: 20px;">
-    <div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Calorias</div>
-      <div id="sumCal" style="font-size: 18px; font-weight: 700; color: var(--primary-light);">0</div>
-      <div style="font-size: 10px; color: var(--text-muted);">/ 2000</div>
-    </div>
-    <div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Proteína</div>
-      <div id="sumProt" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
-    </div>
-    <div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Hidratos</div>
-      <div id="sumHidr" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
-    </div>
-    <div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Gorduras</div>
-      <div id="sumGord" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
-    </div>
-  </div>
+        <!-- NOVO: Resumo Diário -->
+        <div id="dailySummary" class="daily-summary" style="display: none;">
+          <div class="daily-summary-header">
+            <h3 class="daily-summary-title">📅 Resumo de Hoje</h3>
+            <span id="dailyDate" class="daily-summary-date"></span>
+          </div>
+          
+          <div class="daily-summary-grid">
+            <div>
+              <div class="daily-summary-item-label">Calorias</div>
+              <div id="sumCal" class="daily-summary-item-value highlight">0</div>
+              <div class="daily-summary-item-goal">/ 2000</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Proteína</div>
+              <div id="sumProt" class="daily-summary-item-value">0g</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Hidratos</div>
+              <div id="sumHidr" class="daily-summary-item-value">0g</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Gorduras</div>
+              <div id="sumGord" class="daily-summary-item-value">0g</div>
+            </div>
+          </div>
 
-  <!-- Barra de Progresso -->
-  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
-    <span>Progresso diário</span>
-    <span id="progressText">0%</span>
-  </div>
-  <div style="width: 100%; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden;">
-    <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%); transition: width 0.5s ease;"></div>
-  </div>
-</div>
+          <!-- Barra de Progresso -->
+          <div class="progress-container">
+            <span>Progresso diário</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="progress-bar-wrapper">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+        </div>
+
+        <div class="section-title">
           <span>📊 Histórico</span>
           <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
         </div>
@@ -1644,31 +1730,86 @@
         </div>
       `;
       clearHistoryBtn.style.display = 'none';
+    } else {
+      clearHistoryBtn.style.display = 'block';
+      
+      historyList.innerHTML = history.map((item, index) => {
+        const date = new Date(item.timestamp);
+        const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+        const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+        
+        return `
+          <div class="history-item" onclick="loadAnalysis(${index})">
+            <div class="history-item-header">
+              <div class="history-item-title">${item.descricao || 'Refeição'}</div>
+              <div class="history-item-date">${dateStr} ${timeStr}</div>
+            </div>
+            <div class="history-item-macros">
+              <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
+              <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
+              <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
+            </div>
+            <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // NOVO: Atualizar o resumo diário sempre que o histórico carregar
+    updateDailySummary();
+  }
+
+  // NOVO: Atualizar Resumo Diário
+  function updateDailySummary() {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    const today = new Date().toDateString();
+    
+    // Filtrar apenas análises de hoje
+    const todayAnalyses = history.filter(item => {
+      const itemDate = new Date(item.timestamp).toDateString();
+      return itemDate === today;
+    });
+
+    // Se não houver análises hoje, esconder o resumo
+    if (todayAnalyses.length === 0) {
+      document.getElementById('dailySummary').style.display = 'none';
       return;
     }
 
-    clearHistoryBtn.style.display = 'block';
+    // Calcular totais
+    let totalCal = 0, totalProt = 0, totalHidr = 0, totalGord = 0;
+    todayAnalyses.forEach(item => {
+      totalCal += item.calorias || 0;
+      totalProt += item.proteinas_g || 0;
+      totalHidr += item.hidratos_g || 0;
+      totalGord += item.gorduras_g || 0;
+    });
+
+    // Atualizar DOM
+    document.getElementById('dailySummary').style.display = 'block';
+    document.getElementById('dailyDate').textContent = new Date().toLocaleDateString('pt-PT', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long' 
+    });
+    document.getElementById('sumCal').textContent = totalCal;
+    document.getElementById('sumProt').textContent = totalProt + 'g';
+    document.getElementById('sumHidr').textContent = totalHidr + 'g';
+    document.getElementById('sumGord').textContent = totalGord + 'g';
+
+    // Barra de progresso (base 2000 kcal)
+    const goal = 2000;
+    const percentage = Math.min(Math.round((totalCal / goal) * 100), 100);
+    document.getElementById('progressText').textContent = percentage + '%';
+    document.getElementById('progressBar').style.width = percentage + '%';
     
-    historyList.innerHTML = history.map((item, index) => {
-      const date = new Date(item.timestamp);
-      const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-      const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-      
-      return `
-        <div class="history-item" onclick="loadAnalysis(${index})">
-          <div class="history-item-header">
-            <div class="history-item-title">${item.descricao || 'Refeição'}</div>
-            <div class="history-item-date">${dateStr} ${timeStr}</div>
-          </div>
-          <div class="history-item-macros">
-            <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
-            <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
-            <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
-          </div>
-          <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
-        </div>
-      `;
-    }).join('');
+    // Mudar cor da barra se passar do limite
+    const bar = document.getElementById('progressBar');
+    if (totalCal > goal) {
+      bar.classList.add('warning');
+    } else {
+      bar.classList.remove('warning');
+    }
   }
 
   function loadAnalysis(index) {
