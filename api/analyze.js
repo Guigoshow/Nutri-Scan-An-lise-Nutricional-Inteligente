@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: 'Imagem demasiado grande.' });
     }
 
-    // 🔒 CACHE: Hash da imagem para consistência
+    // 🔒 CACHE: Hash da imagem + porção para consistência
     const imageHash = createHash('sha256')
       .update(imageBase64.slice(0, 5000) + portion)
       .digest('hex');
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       'grande': 'grande (aumenta ~40%)'
     }[portion] || 'média';
 
-    // 🎯 PROMPT PROFISSIONAL
+    // 🎯 PROMPT PROFISSIONAL COMPLETO
     const systemPrompt = `Analisas fotos de refeições com precisão nutricional profissional.
 
 METODOLOGIA OBRIGATÓRIA:
@@ -68,37 +68,51 @@ REGRAS CRÍTICAS DE PRECISÃO:
   - Peito de frango grelhado: 165 kcal/100g
   - Carne de vaca grelhada: 250 kcal/100g
   - Peixe branco grelhado: 120 kcal/100g
+  - Salmão grelhado: 208 kcal/100g
 
 ✓ HIDRATOS (arroz/massa/batata):
   - 100g cru = ~300g cozinhado (absorve água)
   - Arroz branco cozinhado: 130 kcal/100g
+  - Arroz integral cozinhado: 123 kcal/100g
   - Massa cozinhada: 160 kcal/100g
   - Batata cozida: 87 kcal/100g
   - Batata frita: 312 kcal/100g
+  - Pão: 265 kcal/100g
 
 ✓ GORDURAS VISÍVEIS:
   - 1 colher sopa azeite = 10g = 90 kcal
   - Molhos cremosos: 50-150 kcal
   - Queijo ralado: 30g = ~120 kcal
+  - Manteiga: 10g = 75 kcal
+  - Abacate: 160 kcal/100g
 
 ✓ VEGETAIS:
   - Brócolos/espinafres: ~35 kcal/100g
   - Cenouras: ~41 kcal/100g
   - Ervilhas: ~81 kcal/100g
+  - Tomate: ~18 kcal/100g
+  - Alface: ~15 kcal/100g
+
+✓ FRUTAS:
+  - Maçã: ~52 kcal/100g
+  - Banana: ~89 kcal/100g
+  - Laranja: ~47 kcal/100g
 
 NUNCA SUBESTIMES:
 - Molhos e temperos (50-200 kcal)
 - Azeite/óleo de confeção (90-180 kcal)
 - Queijo (100-150 kcal)
 - Frutos secos (30g = ~180 kcal)
+- Fruta seca (30g = ~90 kcal)
 
 IDENTIFICAÇÃO DE PRODUTOS EMBALADOS:
 - Se vês marca/nome exato, indica em "marca_sugerida" e "produto_sugerido"
+- Exemplo: "Danone Activia", "Nestlé Fitness"
 
 FORMATO JSON ESTRITO (sem markdown, sem texto extra):
 {
   "tipo": "produto_embalado" | "prato_cozinhado",
-  "descricao": "descrição clara (máximo 2 frases)",
+  "descricao": "descrição clara e completa (máximo 2 frases)",
   "ingredientes": [
     {"nome": "ingrediente", "peso_g": numero, "calorias": numero}
   ],
@@ -109,7 +123,26 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
   "hidratos_g": numero_inteiro,
   "gorduras_g": numero_inteiro,
   "confianca": 1-5,
-  "sugestao": "sugestão prática"
+  "sugestao": "sugestão prática para próxima refeição"
+}
+
+EXEMPLO PRATO COZINHADO:
+{
+  "tipo": "prato_cozinhado",
+  "descricao": "Peito de frango grelhado com arroz branco e brócolos cozidos",
+  "ingredientes": [
+    {"nome": "frango grelhado", "peso_g": 150, "calorias": 248},
+    {"nome": "arroz branco", "peso_g": 200, "calorias": 260},
+    {"nome": "brócolos", "peso_g": 100, "calorias": 35}
+  ],
+  "marca_sugerida": null,
+  "produto_sugerido": null,
+  "calorias": 543,
+  "proteinas_g": 52,
+  "hidratos_g": 62,
+  "gorduras_g": 8,
+  "confianca": 4,
+  "sugestao": "Refeição equilibrada. Na próxima, adiciona mais vegetais variados."
 }`;
 
     // 🔧 FUNÇÃO DE ANÁLISE ÚNICA
@@ -194,18 +227,24 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
         const query = `${analysis.marca_sugerida || ''} ${analysis.produto_sugerido || ''}`.trim();
         
         if (query.length > 2) {
+          console.log('🔍 Buscando Open Food Facts:', query);
           const produtos = await searchProduct(query);
+          
           if (produtos.length > 0) {
             const offData = extractNutritionData(produtos[0]);
+            console.log('✅ Produto encontrado:', offData.nome);
+            
             const diff = Math.abs(analysis.calorias - offData.calorias) / analysis.calorias;
 
             if (diff > 0.2) {
+              console.log(`📊 Ajustando valores OFF: diferença ${(diff * 100).toFixed(1)}%`);
               analysis.calorias = Math.round(offData.calorias);
               analysis.proteinas_g = Math.round(offData.proteinas);
               analysis.hidratos_g = Math.round(offData.hidratos);
               analysis.gorduras_g = Math.round(offData.gorduras);
               analysis.fonte_dados = 'openfoodfacts';
             } else {
+              console.log('✓ Valores IA validados por OFF');
               analysis.fonte_dados = 'ia_validada';
             }
 
@@ -215,6 +254,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
               codigoBarras: offData.codigoBarras
             };
           } else {
+            console.log('⚠️ Produto não encontrado no OFF');
             analysis.fonte_dados = 'ia_estimativa';
           }
         }
@@ -224,6 +264,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
 
       // AJUSTE POR PORÇÃO
       if (analysis.tipo === 'prato_cozinhado' && multiplier !== 1.0) {
+        console.log(`📏 Ajustando para porção ${portion} (x${multiplier})`);
         analysis.calorias = Math.round(analysis.calorias * multiplier);
         analysis.proteinas_g = Math.round(analysis.proteinas_g * multiplier);
         analysis.hidratos_g = Math.round(analysis.hidratos_g * multiplier);
@@ -237,6 +278,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
       
       const diffPct = Math.abs(analysis.calorias - calcCal) / analysis.calorias * 100;
       if (diffPct > 15) {
+        console.warn(`⚠️ Incoerência calórica ${diffPct.toFixed(1)}%. Ajustando...`);
         analysis.calorias = Math.round(calcCal);
       }
 
@@ -250,9 +292,10 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
 
       // 🔒 GUARDAR EM CACHE
       global.__nutriCache[cacheKey] = analysis;
+      console.log('💾 Resultado guardado em cache');
 
     } catch (err) {
-      console.error('Erro:', err.message);
+      console.error('❌ Erro:', err.message);
       analysis = {
         descricao: 'Não consegui identificar. Tenta foto mais nítida.',
         ingredientes: [],
@@ -273,7 +316,7 @@ FORMATO JSON ESTRITO (sem markdown, sem texto extra):
     return res.status(200).json({ analysis });
 
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('❌ Erro /api/analyze:', error);
     return res.status(500).json({ error: 'Erro na análise.' });
   }
 }
