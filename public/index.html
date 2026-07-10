@@ -1272,6 +1272,42 @@
     <section id="historico" class="section">
       <div class="card">
         <div class="section-title">
+          <!-- NOVO: Resumo Diário -->
+<div id="dailySummary" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h3 style="font-size: 16px; font-weight: 700; color: var(--text);">📅 Resumo de Hoje</h3>
+    <span id="dailyDate" style="font-size: 12px; color: var(--text-muted);"></span>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; margin-bottom: 20px;">
+    <div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Calorias</div>
+      <div id="sumCal" style="font-size: 18px; font-weight: 700; color: var(--primary-light);">0</div>
+      <div style="font-size: 10px; color: var(--text-muted);">/ 2000</div>
+    </div>
+    <div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Proteína</div>
+      <div id="sumProt" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
+    </div>
+    <div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Hidratos</div>
+      <div id="sumHidr" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
+    </div>
+    <div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Gorduras</div>
+      <div id="sumGord" style="font-size: 18px; font-weight: 700; color: var(--text);">0g</div>
+    </div>
+  </div>
+
+  <!-- Barra de Progresso -->
+  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+    <span>Progresso diário</span>
+    <span id="progressText">0%</span>
+  </div>
+  <div style="width: 100%; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden;">
+    <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%); transition: width 0.5s ease;"></div>
+  </div>
+</div>
           <span>📊 Histórico</span>
           <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
         </div>
