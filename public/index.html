@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<meta name="theme-color" content="#0f1410" />
+<meta name="theme-color" content="#7fb069" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="description" content="Análise nutricional inteligente com IA" />
 <title>Nutri Scan — Análise Nutricional Inteligente</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0f1410;
@@ -89,11 +92,6 @@
 
   .header-brand:hover .header-logo {
     transform: rotate(-5deg) scale(1.05);
-  }
-
-  .header-title {
-    display: flex;
-    flex-direction: column;
   }
 
   .header-title-main {
@@ -356,6 +354,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   /* UPLOAD */
@@ -749,6 +749,27 @@
   .ingredient-details { color: var(--text-muted); font-size: 12px; }
   .ingredient-calories { color: var(--primary-light); font-weight: 600; }
 
+  /* ALERGÉNIOS */
+  .allergens-box {
+    margin: 12px 0;
+    padding: 12px 16px;
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 4px solid var(--warning);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .allergens-label {
+    font-size: 11px;
+    color: var(--warning);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: block;
+  }
+
   .macros-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -944,6 +965,187 @@
     color: var(--text-muted);
   }
 
+  /* DAILY SUMMARY */
+  .daily-summary {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .daily-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .daily-summary-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .daily-summary-date {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .daily-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .daily-summary-item-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .daily-summary-item-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .daily-summary-item-value.highlight {
+    color: var(--primary-light);
+  }
+
+  .daily-summary-item-goal {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .progress-container {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .progress-bar-wrapper {
+    width: 100%;
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    transition: width 0.5s ease;
+  }
+
+  .progress-bar.warning {
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+  }
+
+  /* GOALS */
+  .goals-section {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .goals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .goals-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .goals-edit-btn {
+    background: none;
+    border: none;
+    color: var(--primary-light);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .goals-display {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    text-align: center;
+  }
+
+  .goals-edit {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .goals-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .goals-input {
+    width: 100%;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  .goals-save-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .goals-save-btn:hover {
+    background: var(--primary-dark);
+  }
+
+  /* CHARTS */
+  .chart-container {
+    margin-bottom: 24px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .chart-wrapper {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    height: 250px;
+  }
+
   /* HISTORY */
   .history-list {
     display: flex;
@@ -1020,6 +1222,23 @@
     font-weight: 700;
     color: var(--primary-light);
     margin-top: 8px;
+  }
+
+  .action-btn {
+    background: rgba(127, 176, 105, 0.1);
+    color: var(--primary-light);
+    border: 1px solid var(--primary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+  }
+
+  .action-btn:hover {
+    background: var(--primary);
+    color: white;
   }
 
   .clear-history-btn {
@@ -1107,90 +1326,6 @@
     margin-top: 40px;
   }
 
-  /* DAILY SUMMARY */
-  .daily-summary {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: var(--card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    animation: slideIn 0.4s ease-out;
-  }
-
-  .daily-summary-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .daily-summary-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .daily-summary-date {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .daily-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  .daily-summary-item-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-  }
-
-  .daily-summary-item-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .daily-summary-item-value.highlight {
-    color: var(--primary-light);
-  }
-
-  .daily-summary-item-goal {
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  .progress-container {
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .progress-bar-wrapper {
-    width: 100%;
-    height: 8px;
-    background: var(--surface);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
-    transition: width 0.5s ease;
-  }
-
-  .progress-bar.warning {
-    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
-  }
-
   /* RESPONSIVE */
   @media (max-width: 640px) {
     :root { --header-height: 56px; }
@@ -1209,6 +1344,8 @@
     .portion-options { grid-template-columns: 1fr; }
     .upload-buttons { grid-template-columns: 1fr; }
     .daily-summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .goals-display { grid-template-columns: repeat(2, 1fr); }
+    .goals-edit-grid { grid-template-columns: 1fr; }
   }
 
   /* ACESSIBILIDADE */
@@ -1220,7 +1357,6 @@
     }
   }
 
-  /* FOCUS STATES */
   button:focus-visible, a:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
@@ -1240,6 +1376,7 @@
     
     <nav class="header-nav">
       <a href="#analisar">Analisar</a>
+      <a href="#graficos">Gráficos</a>
       <a href="#historico">Histórico</a>
       <a href="#sobre">Sobre</a>
       <a href="#analisar" class="header-cta">Começar</a>
@@ -1260,8 +1397,12 @@
         <span class="mobile-menu-nav-icon">📸</span>
         <span>Analisar Refeição</span>
       </a>
-      <a href="#historico" onclick="toggleMobileMenu()">
+      <a href="#graficos" onclick="toggleMobileMenu()">
         <span class="mobile-menu-nav-icon">📊</span>
+        <span>Gráficos</span>
+      </a>
+      <a href="#historico" onclick="toggleMobileMenu()">
+        <span class="mobile-menu-nav-icon">📋</span>
         <span>Histórico</span>
       </a>
       <a href="#sobre" onclick="toggleMobileMenu()">
@@ -1353,10 +1494,31 @@
       </div>
     </section>
 
+    <!-- GRÁFICOS -->
+    <section id="graficos" class="section">
+      <div class="card">
+        <h2 class="section-title">📊 Evolução Semanal</h2>
+        
+        <div class="chart-container">
+          <h3 class="chart-title">Calorias por Dia (últimos 7 dias)</h3>
+          <div class="chart-wrapper">
+            <canvas id="caloriesChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Distribuição de Macros (Hoje)</h3>
+          <div class="chart-wrapper">
+            <canvas id="macrosChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- HISTÓRICO -->
     <section id="historico" class="section">
       <div class="card">
-        <!-- NOVO: Resumo Diário -->
+        <!-- Resumo Diário -->
         <div id="dailySummary" class="daily-summary" style="display: none;">
           <div class="daily-summary-header">
             <h3 class="daily-summary-title">📅 Resumo de Hoje</h3>
@@ -1367,7 +1529,7 @@
             <div>
               <div class="daily-summary-item-label">Calorias</div>
               <div id="sumCal" class="daily-summary-item-value highlight">0</div>
-              <div class="daily-summary-item-goal">/ 2000</div>
+              <div class="daily-summary-item-goal" id="goalCalDisplay">/ 2000</div>
             </div>
             <div>
               <div class="daily-summary-item-label">Proteína</div>
@@ -1383,7 +1545,6 @@
             </div>
           </div>
 
-          <!-- Barra de Progresso -->
           <div class="progress-container">
             <span>Progresso diário</span>
             <span id="progressText">0%</span>
@@ -1393,9 +1554,61 @@
           </div>
         </div>
 
+        <!-- Objetivos -->
+        <div class="goals-section">
+          <div class="goals-header">
+            <h3 class="goals-title">🎯 Objetivos Diários</h3>
+            <button class="goals-edit-btn" onclick="toggleGoalsEdit()">Editar</button>
+          </div>
+          
+          <div class="goals-display">
+            <div>
+              <div class="daily-summary-item-label">Calorias</div>
+              <div id="goalCal" class="daily-summary-item-value highlight">2000</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Proteína</div>
+              <div id="goalProt" class="daily-summary-item-value">150g</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Hidratos</div>
+              <div id="goalHidr" class="daily-summary-item-value">200g</div>
+            </div>
+            <div>
+              <div class="daily-summary-item-label">Gorduras</div>
+              <div id="goalGord" class="daily-summary-item-value">70g</div>
+            </div>
+          </div>
+
+          <div id="goalsEdit" class="goals-edit">
+            <div class="goals-edit-grid">
+              <div>
+                <label class="daily-summary-item-label">Calorias</label>
+                <input type="number" id="inputGoalCal" value="2000" class="goals-input" />
+              </div>
+              <div>
+                <label class="daily-summary-item-label">Proteína (g)</label>
+                <input type="number" id="inputGoalProt" value="150" class="goals-input" />
+              </div>
+              <div>
+                <label class="daily-summary-item-label">Hidratos (g)</label>
+                <input type="number" id="inputGoalHidr" value="200" class="goals-input" />
+              </div>
+              <div>
+                <label class="daily-summary-item-label">Gorduras (g)</label>
+                <input type="number" id="inputGoalGord" value="70" class="goals-input" />
+              </div>
+            </div>
+            <button onclick="saveGoals()" class="goals-save-btn">Guardar Objetivos</button>
+          </div>
+        </div>
+
         <div class="section-title">
-          <span>📊 Histórico</span>
-          <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
+          <span>📋 Histórico</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onclick="exportToCSV()" class="action-btn">📤 Exportar CSV</button>
+            <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
+          </div>
         </div>
         <div id="historyList" class="history-list">
           <div class="empty-state">
@@ -1468,7 +1681,10 @@
   let base64Image = null;
   let selectedPortion = 'media';
 
-  document.addEventListener('DOMContentLoaded', loadHistory);
+  document.addEventListener('DOMContentLoaded', () => {
+    loadGoals();
+    loadHistory();
+  });
 
   // Header scroll
   window.addEventListener('scroll', () => {
@@ -1591,7 +1807,7 @@
       if (data.analysis && typeof data.analysis === 'object') {
         const { 
           descricao, calorias, proteinas_g, hidratos_g, gorduras_g,
-          confianca, sugestao, fonte_dados, produto_oficial, porcao, ingredientes
+          confianca, sugestao, fonte_dados, produto_oficial, porcao, ingredientes, alergenios
         } = data.analysis;
 
         const analysis = {
@@ -1599,6 +1815,7 @@
           confianca, sugestao, fonte_dados, produto_oficial,
           porcao: porcao || selectedPortion,
           ingredientes: ingredientes || [],
+          alergenios: alergenios || [],
           timestamp: new Date().toISOString()
         };
 
@@ -1662,6 +1879,25 @@
       `;
     }
 
+    let allergensBox = '';
+    if (item.alergenios && item.alergenios.length > 0) {
+      const alergenosNomes = {
+        'gluten': 'Glúten',
+        'lactose': 'Lactose',
+        'frutos_secos': 'Frutos Secos',
+        'marisco': 'Marisco',
+        'soja': 'Soja',
+        'ovos': 'Ovos'
+      };
+      const lista = item.alergenios.map(a => alergenosNomes[a] || a).join(', ');
+      allergensBox = `
+        <div class="allergens-box">
+          <span class="allergens-label">⚠️ Alergénios Detetados</span>
+          ${lista}
+        </div>
+      `;
+    }
+
     const porcaoLabel = {
       'pequena': '🥣 Pequena',
       'media': '🥗 Média',
@@ -1679,6 +1915,7 @@
         <span class="confidence-label">Confiança:</span>
         <span class="confidence-stars">${estrelas}</span>
       </div>
+      ${allergensBox}
       ${ingredientsList}
       <div class="calories-highlight">
         <div class="calories-label">Total de Calorias</div>
@@ -1714,7 +1951,7 @@
   function saveToHistory(analysis) {
     let history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
     history.unshift(analysis);
-    if (history.length > 20) history = history.slice(0, 20);
+    if (history.length > 50) history = history.slice(0, 50);
     localStorage.setItem('nutriScanHistory', JSON.stringify(history));
     loadHistory();
   }
@@ -1755,61 +1992,8 @@
       }).join('');
     }
 
-    // NOVO: Atualizar o resumo diário sempre que o histórico carregar
     updateDailySummary();
-  }
-
-  // NOVO: Atualizar Resumo Diário
-  function updateDailySummary() {
-    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
-    const today = new Date().toDateString();
-    
-    // Filtrar apenas análises de hoje
-    const todayAnalyses = history.filter(item => {
-      const itemDate = new Date(item.timestamp).toDateString();
-      return itemDate === today;
-    });
-
-    // Se não houver análises hoje, esconder o resumo
-    if (todayAnalyses.length === 0) {
-      document.getElementById('dailySummary').style.display = 'none';
-      return;
-    }
-
-    // Calcular totais
-    let totalCal = 0, totalProt = 0, totalHidr = 0, totalGord = 0;
-    todayAnalyses.forEach(item => {
-      totalCal += item.calorias || 0;
-      totalProt += item.proteinas_g || 0;
-      totalHidr += item.hidratos_g || 0;
-      totalGord += item.gorduras_g || 0;
-    });
-
-    // Atualizar DOM
-    document.getElementById('dailySummary').style.display = 'block';
-    document.getElementById('dailyDate').textContent = new Date().toLocaleDateString('pt-PT', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
-    });
-    document.getElementById('sumCal').textContent = totalCal;
-    document.getElementById('sumProt').textContent = totalProt + 'g';
-    document.getElementById('sumHidr').textContent = totalHidr + 'g';
-    document.getElementById('sumGord').textContent = totalGord + 'g';
-
-    // Barra de progresso (base 2000 kcal)
-    const goal = 2000;
-    const percentage = Math.min(Math.round((totalCal / goal) * 100), 100);
-    document.getElementById('progressText').textContent = percentage + '%';
-    document.getElementById('progressBar').style.width = percentage + '%';
-    
-    // Mudar cor da barra se passar do limite
-    const bar = document.getElementById('progressBar');
-    if (totalCal > goal) {
-      bar.classList.add('warning');
-    } else {
-      bar.classList.remove('warning');
-    }
+    updateCharts();
   }
 
   function loadAnalysis(index) {
@@ -1829,6 +2013,253 @@
     }
   }
 
+  // Resumo Diário
+  function updateDailySummary() {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    const goals = JSON.parse(localStorage.getItem('nutriScanGoals') || '{"cal":2000}');
+    const today = new Date().toDateString();
+    
+    const todayAnalyses = history.filter(item => {
+      const itemDate = new Date(item.timestamp).toDateString();
+      return itemDate === today;
+    });
+
+    if (todayAnalyses.length === 0) {
+      document.getElementById('dailySummary').style.display = 'none';
+      return;
+    }
+
+    let totalCal = 0, totalProt = 0, totalHidr = 0, totalGord = 0;
+    todayAnalyses.forEach(item => {
+      totalCal += item.calorias || 0;
+      totalProt += item.proteinas_g || 0;
+      totalHidr += item.hidratos_g || 0;
+      totalGord += item.gorduras_g || 0;
+    });
+
+    document.getElementById('dailySummary').style.display = 'block';
+    document.getElementById('dailyDate').textContent = new Date().toLocaleDateString('pt-PT', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long' 
+    });
+    document.getElementById('sumCal').textContent = totalCal;
+    document.getElementById('sumProt').textContent = totalProt + 'g';
+    document.getElementById('sumHidr').textContent = totalHidr + 'g';
+    document.getElementById('sumGord').textContent = totalGord + 'g';
+
+    const goal = goals.cal;
+    const percentage = Math.min(Math.round((totalCal / goal) * 100), 100);
+    document.getElementById('progressText').textContent = percentage + '%';
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('goalCalDisplay').textContent = '/ ' + goal;
+    
+    const bar = document.getElementById('progressBar');
+    if (totalCal > goal) {
+      bar.classList.add('warning');
+    } else {
+      bar.classList.remove('warning');
+    }
+  }
+
+  // Objetivos
+  function loadGoals() {
+    const goals = JSON.parse(localStorage.getItem('nutriScanGoals') || '{"cal":2000,"prot":150,"hidr":200,"gord":70}');
+    
+    document.getElementById('goalCal').textContent = goals.cal;
+    document.getElementById('goalProt').textContent = goals.prot + 'g';
+    document.getElementById('goalHidr').textContent = goals.hidr + 'g';
+    document.getElementById('goalGord').textContent = goals.gord + 'g';
+    
+    document.getElementById('inputGoalCal').value = goals.cal;
+    document.getElementById('inputGoalProt').value = goals.prot;
+    document.getElementById('inputGoalHidr').value = goals.hidr;
+    document.getElementById('inputGoalGord').value = goals.gord;
+    
+    return goals;
+  }
+
+  function toggleGoalsEdit() {
+    const editDiv = document.getElementById('goalsEdit');
+    editDiv.style.display = editDiv.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function saveGoals() {
+    const goals = {
+      cal: parseInt(document.getElementById('inputGoalCal').value) || 2000,
+      prot: parseInt(document.getElementById('inputGoalProt').value) || 150,
+      hidr: parseInt(document.getElementById('inputGoalHidr').value) || 200,
+      gord: parseInt(document.getElementById('inputGoalGord').value) || 70
+    };
+    
+    localStorage.setItem('nutriScanGoals', JSON.stringify(goals));
+    loadGoals();
+    toggleGoalsEdit();
+    updateDailySummary();
+  }
+
+  // Gráficos
+  function updateCharts() {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    
+    // Gráfico 1: Calorias por Dia (últimos 7 dias)
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dayStr = date.toDateString();
+      
+      const dayCalories = history
+        .filter(item => new Date(item.timestamp).toDateString() === dayStr)
+        .reduce((sum, item) => sum + (item.calorias || 0), 0);
+      
+      last7Days.push({
+        label: date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' }),
+        calories: dayCalories
+      });
+    }
+
+    if (window.caloriesChartInstance) {
+      window.caloriesChartInstance.destroy();
+    }
+
+    const ctx1 = document.getElementById('caloriesChart');
+    if (ctx1) {
+      window.caloriesChartInstance = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: last7Days.map(d => d.label),
+          datasets: [{
+            label: 'Calorias',
+            data: last7Days.map(d => d.calories),
+            backgroundColor: 'rgba(127, 176, 105, 0.6)',
+            borderColor: 'rgba(127, 176, 105, 1)',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(26, 31, 27, 0.95)',
+              titleColor: '#f2efe6',
+              bodyColor: '#f2efe6',
+              borderColor: '#7fb069',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#8b957e' },
+              grid: { color: 'rgba(45, 53, 47, 0.5)' }
+            },
+            x: {
+              ticks: { color: '#8b957e' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfico 2: Distribuição de Macros (Hoje)
+    const today = new Date().toDateString();
+    const todayAnalyses = history.filter(item => 
+      new Date(item.timestamp).toDateString() === today
+    );
+
+    const totalProt = todayAnalyses.reduce((sum, item) => sum + (item.proteinas_g || 0), 0);
+    const totalHidr = todayAnalyses.reduce((sum, item) => sum + (item.hidratos_g || 0), 0);
+    const totalGord = todayAnalyses.reduce((sum, item) => sum + (item.gorduras_g || 0), 0);
+
+    if (window.macrosChartInstance) {
+      window.macrosChartInstance.destroy();
+    }
+
+    const ctx2 = document.getElementById('macrosChart');
+    if (ctx2 && (totalProt + totalHidr + totalGord) > 0) {
+      window.macrosChartInstance = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['Proteínas', 'Hidratos', 'Gorduras'],
+          datasets: [{
+            data: [totalProt, totalHidr, totalGord],
+            backgroundColor: [
+              'rgba(127, 176, 105, 0.8)',
+              'rgba(159, 213, 135, 0.8)',
+              'rgba(90, 143, 74, 0.8)'
+            ],
+            borderColor: '#242a26',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#f2efe6', padding: 16 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(26, 31, 27, 0.95)',
+              titleColor: '#f2efe6',
+              bodyColor: '#f2efe6',
+              borderColor: '#7fb069',
+              borderWidth: 1,
+              callbacks: {
+                label: (context) => `${context.label}: ${context.parsed}g`
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // Exportar CSV
+  function exportToCSV() {
+    const history = JSON.parse(localStorage.getItem('nutriScanHistory') || '[]');
+    
+    if (history.length === 0) {
+      alert('Não há dados para exportar.');
+      return;
+    }
+
+    const headers = ['Data', 'Hora', 'Descrição', 'Calorias', 'Proteínas (g)', 'Hidratos (g)', 'Gorduras (g)', 'Porção', 'Confiança'];
+    
+    const rows = history.map(item => {
+      const date = new Date(item.timestamp);
+      return [
+        date.toLocaleDateString('pt-PT'),
+        date.toLocaleTimeString('pt-PT'),
+        `"${(item.descricao || '').replace(/"/g, '""')}"`,
+        item.calorias || 0,
+        item.proteinas_g || 0,
+        item.hidratos_g || 0,
+        item.gorduras_g || 0,
+        item.porcao || 'média',
+        item.confianca || 3
+      ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nutri-scan-historico-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+  }
+
+  // Menu Mobile
   function toggleMobileMenu() {
     document.getElementById('mobileMenuOverlay').classList.toggle('show');
     document.getElementById('mobileMenu').classList.toggle('show');
@@ -1840,6 +2271,19 @@
       if (menu.classList.contains('show')) toggleMobileMenu();
     }
   });
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registado:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('❌ Erro ao registar Service Worker:', error);
+        });
+    });
+  }
 </script>
 </body>
 </html>
