@@ -1500,7 +1500,9 @@
       
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log('✅ Cliente Supabase criado');
-
+      // Mostrar banner imediatamente enquanto verifica sessão
+           document.getElementById('authBanner').style.display = 'block';
+            document.getElementById('authenticatedContent').style.display = 'none';
       // ============================================
       // ESTADO GLOBAL
       // ============================================
