@@ -1467,939 +1467,1016 @@
 
 <script>
   // ============================================
-  // CONFIGURAÇÃO SUPABASE
+  // VERIFICAÇÃO INICIAL
   // ============================================
-  // ⚠️ SUBSTITUI pelos valores do TEU projeto Supabase
-  const SUPABASE_URL = 'https://cviyrelvmbokfxzqkbdj.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aXlyZWx2bWJva2Z4enFrYmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njk2NjMsImV4cCI6MjA5OTM0NTY2M30.mQ1FGNtUlLTS-chxi5GAwDX8A6t9sujpso0WHxIx2g0';
+  console.log('🚀 Nutri Scan - A iniciar...');
   
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // ============================================
-  // ESTADO GLOBAL
-  // ============================================
-  let currentUser = null;
-  let userHistory = [];
-  let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
-  let base64Image = null;
-  let selectedPortion = 'media';
-
-  // Elementos DOM
-  const preview = document.getElementById('preview');
-  const previewContainer = document.getElementById('previewContainer');
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const spinner = document.getElementById('spinner');
-  const resultBox = document.getElementById('result');
-  const errorBox = document.getElementById('error');
-  const historyList = document.getElementById('historyList');
-  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-  const portionBtns = document.querySelectorAll('.portion-btn');
-  const header = document.getElementById('header');
-
-  // ============================================
-  // INICIALIZAÇÃO
-  // ============================================
-  document.addEventListener('DOMContentLoaded', async () => {
-    // Verificar sessão existente
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      currentUser = session.user;
-      await onAuthenticated();
-    } else {
-      showUnauthenticated();
-    }
-  });
-
-  // ============================================
-  // AUTENTICAÇÃO
-  // ============================================
-  function showAuth() {
-    document.getElementById('authOverlay').classList.add('show');
-    showLogin();
-  }
-
-  function hideAuth() {
-    document.getElementById('authOverlay').classList.remove('show');
-  }
-
-  function showLogin() {
-    document.getElementById('authFormLogin').style.display = 'block';
-    document.getElementById('authFormRegister').style.display = 'none';
-    document.getElementById('authTitle').textContent = 'Entrar no Nutri Scan';
-    document.getElementById('authSubtitle').textContent = 'Acede ao teu histórico pessoal';
-    document.getElementById('authError').classList.remove('show');
-  }
-
-  function showRegister() {
-    document.getElementById('authFormLogin').style.display = 'none';
-    document.getElementById('authFormRegister').style.display = 'block';
-    document.getElementById('authTitle').textContent = 'Criar conta';
-    document.getElementById('authSubtitle').textContent = 'Começa a guardar o teu histórico';
-    document.getElementById('authError').classList.remove('show');
-  }
-
-  async function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const btn = document.getElementById('loginBtn');
-    const errorEl = document.getElementById('authError');
-
-    if (!email || !password) {
-      errorEl.textContent = 'Preenche todos os campos.';
-      errorEl.classList.add('show');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'A entrar...';
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      errorEl.textContent = error.message === 'Invalid login credentials' 
-        ? 'Email ou password incorretos.' 
-        : error.message;
-      errorEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'Entrar';
-      return;
-    }
-
-    currentUser = data.user;
-    hideAuth();
-    await onAuthenticated();
-  }
-
-  async function handleRegister() {
-    const email = document.getElementById('registerEmail').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const password2 = document.getElementById('registerPassword2').value;
-    const btn = document.getElementById('registerBtn');
-    const errorEl = document.getElementById('authError');
-
-    if (!email || !password || !password2) {
-      errorEl.textContent = 'Preenche todos os campos.';
-      errorEl.classList.add('show');
-      return;
-    }
-
-    if (password.length < 6) {
-      errorEl.textContent = 'A password deve ter pelo menos 6 caracteres.';
-      errorEl.classList.add('show');
-      return;
-    }
-
-    if (password !== password2) {
-      errorEl.textContent = 'As passwords não coincidem.';
-      errorEl.classList.add('show');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'A criar conta...';
-
-    const { data, error } = await supabase.auth.signUp({ email, password });
-
-    if (error) {
-      errorEl.textContent = error.message;
-      errorEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'Criar conta';
-      return;
-    }
-
-    // Se o email não requer confirmação, logar automaticamente
-    if (data.session) {
-      currentUser = data.user;
-      hideAuth();
-      await onAuthenticated();
-    } else {
-      errorEl.textContent = 'Conta criada! Verifica o teu email para confirmar.';
-      errorEl.style.background = 'rgba(16, 185, 129, 0.1)';
-      errorEl.style.borderColor = 'var(--success)';
-      errorEl.style.color = 'var(--success)';
-      errorEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'Criar conta';
-      setTimeout(() => showLogin(), 2000);
-    }
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    currentUser = null;
-    userHistory = [];
-    showUnauthenticated();
-  }
-
-  // ============================================
-  // UI: AUTENTICADO vs NÃO AUTENTICADO
-  // ============================================
-  function showUnauthenticated() {
-    document.getElementById('authenticatedContent').style.display = 'none';
+  // Verificar se o Supabase foi carregado
+  if (typeof window.supabase === 'undefined') {
+    console.error('❌ Erro: Supabase não foi carregado. Verifica a tua ligação à internet.');
     document.getElementById('authBanner').style.display = 'block';
-    updateNavigation();
-  }
-
-  async function onAuthenticated() {
-    document.getElementById('authenticatedContent').style.display = 'block';
-    document.getElementById('authBanner').style.display = 'none';
-    
-    // Carregar dados do utilizador
-    await loadUserGoals();
-    await loadUserHistory();
-    updateNavigation();
-    updateDailySummary();
-    updateCharts();
-  }
-
-  function updateNavigation() {
-    const headerNav = document.getElementById('headerNav');
-    const mobileMenuNav = document.getElementById('mobileMenuNav');
-
-    if (currentUser) {
-      const email = currentUser.email || 'Utilizador';
-      const initial = email.charAt(0).toUpperCase();
-      
-      headerNav.innerHTML = `
-        <a href="#analisar">Analisar</a>
-        <a href="#graficos">Gráficos</a>
-        <a href="#historico">Histórico</a>
-        <div class="user-badge">
-          <div class="user-avatar">${initial}</div>
-          <span>${email.split('@')[0]}</span>
-        </div>
-        <button onclick="handleLogout()">Sair</button>
-      `;
-
-      mobileMenuNav.innerHTML = `
-        <a href="#analisar" onclick="toggleMobileMenu()">
-          <span>📸</span>
-          <span>Analisar Refeição</span>
-        </a>
-        <a href="#graficos" onclick="toggleMobileMenu()">
-          <span>📊</span>
-          <span>Gráficos</span>
-        </a>
-        <a href="#historico" onclick="toggleMobileMenu()">
-          <span>📋</span>
-          <span>Histórico</span>
-        </a>
-        <a href="#sobre" onclick="toggleMobileMenu()">
-          <span>ℹ️</span>
-          <span>Sobre</span>
-        </a>
-        <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
-          <span>🚪</span>
-          <span>Sair</span>
-        </button>
-      `;
-    } else {
-      headerNav.innerHTML = `
-        <a href="#sobre">Sobre</a>
-        <button class="header-cta" onclick="showAuth()">Entrar</button>
-      `;
-
-      mobileMenuNav.innerHTML = `
-        <a href="#sobre" onclick="toggleMobileMenu()">
-          <span>ℹ️</span>
-          <span>Sobre</span>
-        </a>
-        <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
-          <span>🔑</span>
-          <span>Entrar / Criar conta</span>
-        </button>
-      `;
-    }
+    document.getElementById('authBanner').innerHTML = `
+      <div class="logo-large">🥗</div>
+      <h2 class="auth-banner-title">Erro de Conexão</h2>
+      <p class="auth-banner-text">Não foi possível carregar o Supabase. Verifica a tua ligação à internet e recarrega a página.</p>
+      <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
+    `;
+  } else {
+    console.log('✅ Supabase carregado com sucesso');
+    initApp();
   }
 
   // ============================================
-  // CARREGAR DADOS DO SUPABASE
+  // INICIALIZAÇÃO DA APP
   // ============================================
-  async function loadUserHistory() {
-    const { data, error } = await supabase
-      .from('analyses')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('timestamp', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('Erro ao carregar histórico:', error);
-      return;
-    }
-
-    userHistory = (data || []).map(item => ({
-      id: item.id,
-      descricao: item.descricao,
-      calorias: item.calorias,
-      proteinas_g: item.proteinas_g,
-      hidratos_g: item.hidratos_g,
-      gorduras_g: item.gorduras_g,
-      confianca: item.confianca,
-      sugestao: item.sugestao,
-      fonte_dados: item.fonte_dados,
-      produto_oficial: item.produto_oficial,
-      ingredientes: item.ingredientes || [],
-      alergenios: item.alergenios || [],
-      porcao: item.porcao || 'media',
-      timestamp: item.timestamp
-    }));
-
-    renderHistory();
-  }
-
-  async function loadUserGoals() {
-    const { data, error } = await supabase
-      .from('user_goals')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .single();
-
-    if (data && !error) {
-      userGoals = {
-        cal: data.cal || 2000,
-        prot: data.prot || 150,
-        hidr: data.hidr || 200,
-        gord: data.gord || 70
-      };
-    }
-
-    // Atualizar UI
-    document.getElementById('goalCal').textContent = userGoals.cal;
-    document.getElementById('goalProt').textContent = userGoals.prot + 'g';
-    document.getElementById('goalHidr').textContent = userGoals.hidr + 'g';
-    document.getElementById('goalGord').textContent = userGoals.gord + 'g';
-    
-    document.getElementById('inputGoalCal').value = userGoals.cal;
-    document.getElementById('inputGoalProt').value = userGoals.prot;
-    document.getElementById('inputGoalHidr').value = userGoals.hidr;
-    document.getElementById('inputGoalGord').value = userGoals.gord;
-  }
-
-  // ============================================
-  // GUARDAR NO SUPABASE
-  // ============================================
-  async function saveAnalysisToSupabase(analysis) {
-    const { data, error } = await supabase
-      .from('analyses')
-      .insert({
-        user_id: currentUser.id,
-        descricao: analysis.descricao,
-        calorias: analysis.calorias,
-        proteinas_g: analysis.proteinas_g,
-        hidratos_g: analysis.hidratos_g,
-        gorduras_g: analysis.gorduras_g,
-        confianca: analysis.confianca,
-        sugestao: analysis.sugestao,
-        fonte_dados: analysis.fonte_dados,
-        produto_oficial: analysis.produto_oficial,
-        ingredientes: analysis.ingredientes,
-        alergenios: analysis.alergenios,
-        porcao: analysis.porcao,
-        timestamp: analysis.timestamp
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao guardar análise:', error);
-      return null;
-    }
-
-    return data;
-  }
-
-  async function saveGoals() {
-    const newGoals = {
-      cal: parseInt(document.getElementById('inputGoalCal').value) || 2000,
-      prot: parseInt(document.getElementById('inputGoalProt').value) || 150,
-      hidr: parseInt(document.getElementById('inputGoalHidr').value) || 200,
-      gord: parseInt(document.getElementById('inputGoalGord').value) || 70
-    };
-
-    // Upsert (inserir ou atualizar)
-    const { error } = await supabase
-      .from('user_goals')
-      .upsert({
-        user_id: currentUser.id,
-        ...newGoals,
-        updated_at: new Date().toISOString()
-      });
-
-    if (error) {
-      console.error('Erro ao guardar objetivos:', error);
-      alert('Erro ao guardar objetivos.');
-      return;
-    }
-
-    userGoals = newGoals;
-    loadUserGoals();
-    toggleGoalsEdit();
-    updateDailySummary();
-  }
-
-  async function clearHistory() {
-    if (!confirm('Apagar todo o teu histórico? Esta ação não pode ser desfeita.')) return;
-
-    const { error } = await supabase
-      .from('analyses')
-      .delete()
-      .eq('user_id', currentUser.id);
-
-    if (error) {
-      console.error('Erro ao apagar:', error);
-      alert('Erro ao apagar histórico.');
-      return;
-    }
-
-    userHistory = [];
-    renderHistory();
-    updateDailySummary();
-    updateCharts();
-  }
-
-  // ============================================
-  // RENDERIZAR HISTÓRICO
-  // ============================================
-  function renderHistory() {
-    if (userHistory.length === 0) {
-      historyList.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">📭</div>
-          <div>Ainda não analisaste nenhuma refeição.</div>
-        </div>
-      `;
-      clearHistoryBtn.style.display = 'none';
-      return;
-    }
-
-    clearHistoryBtn.style.display = 'block';
-    
-    historyList.innerHTML = userHistory.map((item, index) => {
-      const date = new Date(item.timestamp);
-      const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-      const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-      
-      return `
-        <div class="history-item" onclick="loadAnalysis(${index})">
-          <div class="history-item-header">
-            <div class="history-item-title">${item.descricao || 'Refeição'}</div>
-            <div class="history-item-date">${dateStr} ${timeStr}</div>
-          </div>
-          <div class="history-item-macros">
-            <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
-            <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
-            <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
-          </div>
-          <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function loadAnalysis(index) {
-    const item = userHistory[index];
-    if (!item) return;
-
-    displayResult(item);
-    resultBox.classList.add('show');
-    document.getElementById('analisar').scrollIntoView({ behavior: 'smooth' });
-  }
-
-  // ============================================
-  // UPLOAD E ANÁLISE
-  // ============================================
-  function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1024;
-          let width = img.width;
-          let height = img.height;
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
-        };
-        img.onerror = () => reject(new Error('Imagem inválida'));
-        img.src = event.target.result;
-      };
-      reader.onerror = () => reject(new Error('Erro ao ler ficheiro'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function setupInput(input) {
-    input.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) handleFile(file);
-    });
-  }
-
-  setupInput(document.getElementById('fileInputCamera'));
-  setupInput(document.getElementById('fileInputGallery'));
-  setupInput(document.getElementById('fileInputFull'));
-
-  const dropFull = document.getElementById('dropZoneFull');
-  dropFull.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropFull.style.borderColor = 'var(--primary)';
-  });
-  dropFull.addEventListener('dragleave', () => {
-    dropFull.style.borderColor = '';
-  });
-  dropFull.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropFull.style.borderColor = '';
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
-
-  function handleFile(file) {
-    if (!file.type.startsWith('image/')) {
-      errorBox.textContent = 'Escolhe uma imagem válida.';
-      errorBox.classList.add('show');
-      return;
-    }
-
-    preview.src = URL.createObjectURL(file);
-    previewContainer.classList.add('show');
-    analyzeBtn.disabled = true;
-    resultBox.classList.remove('show');
-    errorBox.classList.remove('show');
-
-    compressImage(file)
-      .then((dataUrl) => {
-        base64Image = dataUrl.split(',')[1];
-        analyzeBtn.disabled = false;
-      })
-      .catch((err) => {
-        console.error(err);
-        errorBox.textContent = 'Erro ao processar imagem.';
-        errorBox.classList.add('show');
-      });
-  }
-
-  portionBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      portionBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedPortion = btn.dataset.portion;
-    });
-  });
-
-  analyzeBtn.addEventListener('click', async () => {
-    if (!base64Image) return;
-
-    analyzeBtn.disabled = true;
-    spinner.classList.add('show');
-    resultBox.classList.remove('show');
-    errorBox.classList.remove('show');
-
+  async function initApp() {
     try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          imageBase64: base64Image, 
-          mimeType: 'image/jpeg',
-          portion: selectedPortion
-        }),
+      // Configurar Supabase
+      const SUPABASE_URL = 'https://cviyrelvmbokfxzqkbdj.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aXlyZWx2bWJva2Z4enFrYmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njk2NjMsImV4cCI6MjA5OTM0NTY2M30.mQ1FGNtUlLTS-chxi5GAwDX8A6t9sujpso0WHxIx2g0';
+      
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('✅ Cliente Supabase criado');
+
+      // ============================================
+      // ESTADO GLOBAL
+      // ============================================
+      let currentUser = null;
+      let userHistory = [];
+      let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
+      let base64Image = null;
+      let selectedPortion = 'media';
+
+      // Elementos DOM
+      const preview = document.getElementById('preview');
+      const previewContainer = document.getElementById('previewContainer');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const spinner = document.getElementById('spinner');
+      const resultBox = document.getElementById('result');
+      const errorBox = document.getElementById('error');
+      const historyList = document.getElementById('historyList');
+      const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+      const portionBtns = document.querySelectorAll('.portion-btn');
+      const header = document.getElementById('header');
+
+      // ============================================
+      // VERIFICAR SESSÃO AO CARREGAR
+      // ============================================
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          console.log('🔍 A verificar sessão...');
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Erro ao verificar sessão:', error);
+            showUnauthenticated();
+            return;
+          }
+          
+          if (session) {
+            console.log('✅ Sessão encontrada:', session.user.email);
+            currentUser = session.user;
+            await onAuthenticated();
+          } else {
+            console.log('ℹ️ Sem sessão ativa');
+            showUnauthenticated();
+          }
+        } catch (err) {
+          console.error('❌ Erro ao carregar sessão:', err);
+          showUnauthenticated();
+        }
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro');
+      // ============================================
+      // FUNÇÕES DE AUTENTICAÇÃO
+      // ============================================
+      window.showAuth = function() {
+        document.getElementById('authOverlay').classList.add('show');
+        showLogin();
+      };
 
-      if (data.analysis && typeof data.analysis === 'object') {
-        const analysis = {
-          ...data.analysis,
-          porcao: data.analysis.porcao || selectedPortion,
-          ingredientes: data.analysis.ingredientes || [],
-          alergenios: data.analysis.alergenios || [],
-          timestamp: new Date().toISOString()
+      window.hideAuth = function() {
+        document.getElementById('authOverlay').classList.remove('show');
+      };
+
+      function showLogin() {
+        document.getElementById('authFormLogin').style.display = 'block';
+        document.getElementById('authFormRegister').style.display = 'none';
+        document.getElementById('authTitle').textContent = 'Entrar no Nutri Scan';
+        document.getElementById('authSubtitle').textContent = 'Acede ao teu histórico pessoal';
+        document.getElementById('authError').classList.remove('show');
+      }
+
+      window.showRegister = function() {
+        document.getElementById('authFormLogin').style.display = 'none';
+        document.getElementById('authFormRegister').style.display = 'block';
+        document.getElementById('authTitle').textContent = 'Criar conta';
+        document.getElementById('authSubtitle').textContent = 'Começa a guardar o teu histórico';
+        document.getElementById('authError').classList.remove('show');
+      };
+
+      window.showLogin = showLogin;
+
+      window.handleLogin = async function() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const btn = document.getElementById('loginBtn');
+        const errorEl = document.getElementById('authError');
+
+        if (!email || !password) {
+          errorEl.textContent = 'Preenche todos os campos.';
+          errorEl.classList.add('show');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'A entrar...';
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+          if (error) {
+            errorEl.textContent = error.message === 'Invalid login credentials' 
+              ? 'Email ou password incorretos.' 
+              : error.message;
+            errorEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Entrar';
+            return;
+          }
+
+          currentUser = data.user;
+          hideAuth();
+          await onAuthenticated();
+        } catch (err) {
+          errorEl.textContent = 'Erro ao entrar. Tenta novamente.';
+          errorEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+        }
+      };
+
+      window.handleRegister = async function() {
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const password2 = document.getElementById('registerPassword2').value;
+        const btn = document.getElementById('registerBtn');
+        const errorEl = document.getElementById('authError');
+
+        if (!email || !password || !password2) {
+          errorEl.textContent = 'Preenche todos os campos.';
+          errorEl.classList.add('show');
+          return;
+        }
+
+        if (password.length < 6) {
+          errorEl.textContent = 'A password deve ter pelo menos 6 caracteres.';
+          errorEl.classList.add('show');
+          return;
+        }
+
+        if (password !== password2) {
+          errorEl.textContent = 'As passwords não coincidem.';
+          errorEl.classList.add('show');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'A criar conta...';
+
+        try {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+
+          if (error) {
+            errorEl.textContent = error.message;
+            errorEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Criar conta';
+            return;
+          }
+
+          if (data.session) {
+            currentUser = data.user;
+            hideAuth();
+            await onAuthenticated();
+          } else {
+            errorEl.textContent = 'Conta criada! Verifica o teu email para confirmar.';
+            errorEl.style.background = 'rgba(16, 185, 129, 0.1)';
+            errorEl.style.borderColor = 'var(--success)';
+            errorEl.style.color = 'var(--success)';
+            errorEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Criar conta';
+            setTimeout(() => showLogin(), 2000);
+          }
+        } catch (err) {
+          errorEl.textContent = 'Erro ao criar conta. Tenta novamente.';
+          errorEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Criar conta';
+        }
+      };
+
+      window.handleLogout = async function() {
+        await supabase.auth.signOut();
+        currentUser = null;
+        userHistory = [];
+        showUnauthenticated();
+      };
+
+      // ============================================
+      // UI: AUTENTICADO vs NÃO AUTENTICADO
+      // ============================================
+      function showUnauthenticated() {
+        document.getElementById('authenticatedContent').style.display = 'none';
+        document.getElementById('authBanner').style.display = 'block';
+        updateNavigation();
+      }
+
+      async function onAuthenticated() {
+        document.getElementById('authenticatedContent').style.display = 'block';
+        document.getElementById('authBanner').style.display = 'none';
+        
+        await loadUserGoals();
+        await loadUserHistory();
+        updateNavigation();
+        updateDailySummary();
+        updateCharts();
+      }
+
+      function updateNavigation() {
+        const headerNav = document.getElementById('headerNav');
+        const mobileMenuNav = document.getElementById('mobileMenuNav');
+
+        if (currentUser) {
+          const email = currentUser.email || 'Utilizador';
+          const initial = email.charAt(0).toUpperCase();
+          
+          headerNav.innerHTML = `
+            <a href="#analisar">Analisar</a>
+            <a href="#graficos">Gráficos</a>
+            <a href="#historico">Histórico</a>
+            <div class="user-badge">
+              <div class="user-avatar">${initial}</div>
+              <span>${email.split('@')[0]}</span>
+            </div>
+            <button onclick="handleLogout()">Sair</button>
+          `;
+
+          mobileMenuNav.innerHTML = `
+            <a href="#analisar" onclick="toggleMobileMenu()">
+              <span>📸</span>
+              <span>Analisar Refeição</span>
+            </a>
+            <a href="#graficos" onclick="toggleMobileMenu()">
+              <span>📊</span>
+              <span>Gráficos</span>
+            </a>
+            <a href="#historico" onclick="toggleMobileMenu()">
+              <span>📋</span>
+              <span>Histórico</span>
+            </a>
+            <a href="#sobre" onclick="toggleMobileMenu()">
+              <span>ℹ️</span>
+              <span>Sobre</span>
+            </a>
+            <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
+              <span>🚪</span>
+              <span>Sair</span>
+            </button>
+          `;
+        } else {
+          headerNav.innerHTML = `
+            <a href="#sobre">Sobre</a>
+            <button class="header-cta" onclick="showAuth()">Entrar</button>
+          `;
+
+          mobileMenuNav.innerHTML = `
+            <a href="#sobre" onclick="toggleMobileMenu()">
+              <span>ℹ️</span>
+              <span>Sobre</span>
+            </a>
+            <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
+              <span>🔑</span>
+              <span>Entrar / Criar conta</span>
+            </button>
+          `;
+        }
+      }
+
+      // ============================================
+      // CARREGAR DADOS DO SUPABASE
+      // ============================================
+      async function loadUserHistory() {
+        try {
+          const { data, error } = await supabase
+            .from('analyses')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('timestamp', { ascending: false })
+            .limit(100);
+
+          if (error) {
+            console.error('Erro ao carregar histórico:', error);
+            return;
+          }
+
+          userHistory = (data || []).map(item => ({
+            id: item.id,
+            descricao: item.descricao,
+            calorias: item.calorias,
+            proteinas_g: item.proteinas_g,
+            hidratos_g: item.hidratos_g,
+            gorduras_g: item.gorduras_g,
+            confianca: item.confianca,
+            sugestao: item.sugestao,
+            fonte_dados: item.fonte_dados,
+            produto_oficial: item.produto_oficial,
+            ingredientes: item.ingredientes || [],
+            alergenios: item.alergenios || [],
+            porcao: item.porcao || 'media',
+            timestamp: item.timestamp
+          }));
+
+          renderHistory();
+        } catch (err) {
+          console.error('Erro ao carregar histórico:', err);
+        }
+      }
+
+      async function loadUserGoals() {
+        try {
+          const { data, error } = await supabase
+            .from('user_goals')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+
+          if (data && !error) {
+            userGoals = {
+              cal: data.cal || 2000,
+              prot: data.prot || 150,
+              hidr: data.hidr || 200,
+              gord: data.gord || 70
+            };
+          }
+
+          document.getElementById('goalCal').textContent = userGoals.cal;
+          document.getElementById('goalProt').textContent = userGoals.prot + 'g';
+          document.getElementById('goalHidr').textContent = userGoals.hidr + 'g';
+          document.getElementById('goalGord').textContent = userGoals.gord + 'g';
+          
+          document.getElementById('inputGoalCal').value = userGoals.cal;
+          document.getElementById('inputGoalProt').value = userGoals.prot;
+          document.getElementById('inputGoalHidr').value = userGoals.hidr;
+          document.getElementById('inputGoalGord').value = userGoals.gord;
+        } catch (err) {
+          console.error('Erro ao carregar objetivos:', err);
+        }
+      }
+
+      // ============================================
+      // GUARDAR NO SUPABASE
+      // ============================================
+      async function saveAnalysisToSupabase(analysis) {
+        try {
+          const { data, error } = await supabase
+            .from('analyses')
+            .insert({
+              user_id: currentUser.id,
+              descricao: analysis.descricao,
+              calorias: analysis.calorias,
+              proteinas_g: analysis.proteinas_g,
+              hidratos_g: analysis.hidratos_g,
+              gorduras_g: analysis.gorduras_g,
+              confianca: analysis.confianca,
+              sugestao: analysis.sugestao,
+              fonte_dados: analysis.fonte_dados,
+              produto_oficial: analysis.produto_oficial,
+              ingredientes: analysis.ingredientes,
+              alergenios: analysis.alergenios,
+              porcao: analysis.porcao,
+              timestamp: analysis.timestamp
+            })
+            .select()
+            .single();
+
+          if (error) {
+            console.error('Erro ao guardar análise:', error);
+            return null;
+          }
+
+          return data;
+        } catch (err) {
+          console.error('Erro ao guardar análise:', err);
+          return null;
+        }
+      }
+
+      window.saveGoals = async function() {
+        const newGoals = {
+          cal: parseInt(document.getElementById('inputGoalCal').value) || 2000,
+          prot: parseInt(document.getElementById('inputGoalProt').value) || 150,
+          hidr: parseInt(document.getElementById('inputGoalHidr').value) || 200,
+          gord: parseInt(document.getElementById('inputGoalGord').value) || 70
         };
 
-        // Guardar no Supabase
-        const saved = await saveAnalysisToSupabase(analysis);
-        
-        if (saved) {
-          // Adicionar ao início do histórico
-          userHistory.unshift({
-            id: saved.id,
-            ...analysis
-          });
+        try {
+          const { error } = await supabase
+            .from('user_goals')
+            .upsert({
+              user_id: currentUser.id,
+              ...newGoals,
+              updated_at: new Date().toISOString()
+            });
+
+          if (error) {
+            console.error('Erro ao guardar objetivos:', error);
+            alert('Erro ao guardar objetivos.');
+            return;
+          }
+
+          userGoals = newGoals;
+          loadUserGoals();
+          toggleGoalsEdit();
+          updateDailySummary();
+        } catch (err) {
+          console.error('Erro ao guardar objetivos:', err);
+          alert('Erro ao guardar objetivos.');
+        }
+      };
+
+      window.clearHistory = async function() {
+        if (!confirm('Apagar todo o teu histórico? Esta ação não pode ser desfeita.')) return;
+
+        try {
+          const { error } = await supabase
+            .from('analyses')
+            .delete()
+            .eq('user_id', currentUser.id);
+
+          if (error) {
+            console.error('Erro ao apagar:', error);
+            alert('Erro ao apagar histórico.');
+            return;
+          }
+
+          userHistory = [];
           renderHistory();
           updateDailySummary();
           updateCharts();
+        } catch (err) {
+          console.error('Erro ao apagar:', err);
+          alert('Erro ao apagar histórico.');
+        }
+      };
+
+      // ============================================
+      // RENDERIZAR HISTÓRICO
+      // ============================================
+      function renderHistory() {
+        if (userHistory.length === 0) {
+          historyList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div>Ainda não analisaste nenhuma refeição.</div>
+            </div>
+          `;
+          clearHistoryBtn.style.display = 'none';
+          return;
         }
 
-        displayResult(analysis);
+        clearHistoryBtn.style.display = 'block';
+        
+        historyList.innerHTML = userHistory.map((item, index) => {
+          const date = new Date(item.timestamp);
+          const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+          const timeStr = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+          
+          return `
+            <div class="history-item" onclick="loadAnalysis(${index})">
+              <div class="history-item-header">
+                <div class="history-item-title">${item.descricao || 'Refeição'}</div>
+                <div class="history-item-date">${dateStr} ${timeStr}</div>
+              </div>
+              <div class="history-item-macros">
+                <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
+                <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
+                <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
+              </div>
+              <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
+            </div>
+          `;
+        }).join('');
       }
 
-      resultBox.classList.add('show');
-      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (err) {
-      errorBox.textContent = err.message || 'Erro na análise.';
-      errorBox.classList.add('show');
-    } finally {
-      spinner.classList.remove('show');
-      analyzeBtn.disabled = false;
-    }
-  });
+      window.loadAnalysis = function(index) {
+        const item = userHistory[index];
+        if (!item) return;
 
-  function displayResult(item) {
-    const estrelas = '⭐'.repeat(item.confianca || 3) + '☆'.repeat(5 - (item.confianca || 3));
-    const pctCal = Math.round((item.calorias / userGoals.cal) * 100);
-    const pctProt = Math.round((item.proteinas_g / userGoals.prot) * 100);
-    const pctHidr = Math.round((item.hidratos_g / userGoals.hidr) * 100);
-    const pctGord = Math.round((item.gorduras_g / userGoals.gord) * 100);
-
-    let sourceBadge = '';
-    if (item.fonte_dados === 'openfoodfacts') {
-      sourceBadge = '<div class="source-badge openfoodfacts">✅ Open Food Facts</div>';
-    } else if (item.fonte_dados === 'ia_validada') {
-      sourceBadge = '<div class="source-badge ia-validada">✓ IA Validada</div>';
-    } else {
-      sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
-    }
-
-    let productInfo = '';
-    if (item.produto_oficial && item.produto_oficial.nome) {
-      productInfo = `
-        <div class="product-info">
-          <div class="product-info-label">📦 Produto Identificado</div>
-          <div class="product-info-name">${item.produto_oficial.nome}</div>
-          ${item.produto_oficial.marca ? `<div class="product-info-brand">${item.produto_oficial.marca}</div>` : ''}
-        </div>
-      `;
-    }
-
-    let ingredientsList = '';
-    if (item.ingredientes && item.ingredientes.length > 0) {
-      ingredientsList = `
-        <div class="ingredients-list">
-          <div class="ingredients-title">Ingredientes Identificados</div>
-          ${item.ingredientes.map(ing => `
-            <div class="ingredient-item">
-              <div>
-                <div class="ingredient-name">${ing.nome}</div>
-                <div class="ingredient-details">${ing.peso_g}g</div>
-              </div>
-              <div class="ingredient-calories">${ing.calorias} kcal</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    let allergensBox = '';
-    if (item.alergenios && item.alergenios.length > 0) {
-      const alergenosNomes = {
-        'gluten': 'Glúten',
-        'lactose': 'Lactose',
-        'frutos_secos': 'Frutos Secos',
-        'marisco': 'Marisco',
-        'soja': 'Soja',
-        'ovos': 'Ovos'
+        displayResult(item);
+        resultBox.classList.add('show');
+        document.getElementById('analisar').scrollIntoView({ behavior: 'smooth' });
       };
-      const lista = item.alergenios.map(a => alergenosNomes[a] || a).join(', ');
-      allergensBox = `
-        <div class="allergens-box">
-          <span class="allergens-label">⚠️ Alergénios Detetados</span>
-          ${lista}
-        </div>
-      `;
-    }
 
-    const porcaoLabel = {
-      'pequena': '🥣 Pequena',
-      'media': '🥗 Média',
-      'grande': '🍲 Grande'
-    }[item.porcao || 'media'] || '🥗 Média';
+      // ============================================
+      // UPLOAD E ANÁLISE
+      // ============================================
+      function compressImage(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 1024;
+              let width = img.width;
+              let height = img.height;
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+              canvas.width = width;
+              canvas.height = height;
+              canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = () => reject(new Error('Imagem inválida'));
+            img.src = event.target.result;
+          };
+          reader.onerror = () => reject(new Error('Erro ao ler ficheiro'));
+          reader.readAsDataURL(file);
+        });
+      }
 
-    resultBox.innerHTML = `
-      ${sourceBadge}
-      ${productInfo}
-      <div class="result-title">
-        ${item.descricao || 'Refeição'}
-        <span class="portion-badge">${porcaoLabel}</span>
-      </div>
-      <div class="confidence-bar">
-        <span class="confidence-label">Confiança:</span>
-        <span class="confidence-stars">${estrelas}</span>
-      </div>
-      ${allergensBox}
-      ${ingredientsList}
-      <div class="calories-highlight">
-        <div class="calories-label">Total de Calorias</div>
-        <div class="calories-value">${item.calorias}<span class="calories-unit">kcal</span></div>
-        <div class="calories-percent">${pctCal}% do objetivo (${userGoals.cal} kcal)</div>
-      </div>
-      <div class="macros-grid">
-        <div class="macro-item">
-          <div class="macro-label">🥩 Proteínas</div>
-          <div class="macro-value">${item.proteinas_g}<span class="macro-unit">g</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% objetivo</div>
-        </div>
-        <div class="macro-item">
-          <div class="macro-label">🍞 Hidratos</div>
-          <div class="macro-value">${item.hidratos_g}<span class="macro-unit">g</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% objetivo</div>
-        </div>
-        <div class="macro-item">
-          <div class="macro-label">🥑 Gorduras</div>
-          <div class="macro-value">${item.gorduras_g}<span class="macro-unit">g</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% objetivo</div>
-        </div>
-        <div class="macro-item">
-          <div class="macro-label">⚡ Energia</div>
-          <div class="macro-value">${Math.round(item.calorias * 4.184)}<span class="macro-unit">kJ</span></div>
-        </div>
-      </div>
-      ${item.sugestao ? `<div class="suggestion-box"><span class="suggestion-label">💡 Sugestão</span>${item.sugestao}</div>` : ''}
-    `;
-  }
+      function setupInput(input) {
+        input.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) handleFile(file);
+        });
+      }
 
-  // ============================================
-  // RESUMO DIÁRIO
-  // ============================================
-  function updateDailySummary() {
-    const today = new Date().toDateString();
-    
-    const todayAnalyses = userHistory.filter(item => {
-      const itemDate = new Date(item.timestamp).toDateString();
-      return itemDate === today;
-    });
+      setupInput(document.getElementById('fileInputCamera'));
+      setupInput(document.getElementById('fileInputGallery'));
+      setupInput(document.getElementById('fileInputFull'));
 
-    if (todayAnalyses.length === 0) {
-      document.getElementById('dailySummary').style.display = 'none';
-      return;
-    }
-
-    let totalCal = 0, totalProt = 0, totalHidr = 0, totalGord = 0;
-    todayAnalyses.forEach(item => {
-      totalCal += item.calorias || 0;
-      totalProt += item.proteinas_g || 0;
-      totalHidr += item.hidratos_g || 0;
-      totalGord += item.gorduras_g || 0;
-    });
-
-    document.getElementById('dailySummary').style.display = 'block';
-    document.getElementById('dailyDate').textContent = new Date().toLocaleDateString('pt-PT', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
-    });
-    document.getElementById('sumCal').textContent = totalCal;
-    document.getElementById('sumProt').textContent = totalProt + 'g';
-    document.getElementById('sumHidr').textContent = totalHidr + 'g';
-    document.getElementById('sumGord').textContent = totalGord + 'g';
-
-    const percentage = Math.min(Math.round((totalCal / userGoals.cal) * 100), 100);
-    document.getElementById('progressText').textContent = percentage + '%';
-    document.getElementById('progressBar').style.width = percentage + '%';
-    document.getElementById('goalCalDisplay').textContent = '/ ' + userGoals.cal;
-    
-    const bar = document.getElementById('progressBar');
-    if (totalCal > userGoals.cal) {
-      bar.classList.add('warning');
-    } else {
-      bar.classList.remove('warning');
-    }
-  }
-
-  function toggleGoalsEdit() {
-    const editDiv = document.getElementById('goalsEdit');
-    editDiv.style.display = editDiv.style.display === 'none' ? 'block' : 'none';
-  }
-
-  // ============================================
-  // GRÁFICOS
-  // ============================================
-  function updateCharts() {
-    // Gráfico 1: Calorias por Dia (últimos 7 dias)
-    const last7Days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dayStr = date.toDateString();
-      
-      const dayCalories = userHistory
-        .filter(item => new Date(item.timestamp).toDateString() === dayStr)
-        .reduce((sum, item) => sum + (item.calorias || 0), 0);
-      
-      last7Days.push({
-        label: date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' }),
-        calories: dayCalories
+      const dropFull = document.getElementById('dropZoneFull');
+      dropFull.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropFull.style.borderColor = 'var(--primary)';
       });
-    }
+      dropFull.addEventListener('dragleave', () => {
+        dropFull.style.borderColor = '';
+      });
+      dropFull.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropFull.style.borderColor = '';
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
 
-    if (window.caloriesChartInstance) window.caloriesChartInstance.destroy();
+      function handleFile(file) {
+        if (!file.type.startsWith('image/')) {
+          errorBox.textContent = 'Escolhe uma imagem válida.';
+          errorBox.classList.add('show');
+          return;
+        }
 
-    const ctx1 = document.getElementById('caloriesChart');
-    if (ctx1) {
-      window.caloriesChartInstance = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: last7Days.map(d => d.label),
-          datasets: [{
-            label: 'Calorias',
-            data: last7Days.map(d => d.calories),
-            backgroundColor: 'rgba(127, 176, 105, 0.6)',
-            borderColor: 'rgba(127, 176, 105, 1)',
-            borderWidth: 2,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(26, 31, 27, 0.95)',
-              titleColor: '#f2efe6',
-              bodyColor: '#f2efe6',
-              borderColor: '#7fb069',
-              borderWidth: 1
+        preview.src = URL.createObjectURL(file);
+        previewContainer.classList.add('show');
+        analyzeBtn.disabled = true;
+        resultBox.classList.remove('show');
+        errorBox.classList.remove('show');
+
+        compressImage(file)
+          .then((dataUrl) => {
+            base64Image = dataUrl.split(',')[1];
+            analyzeBtn.disabled = false;
+          })
+          .catch((err) => {
+            console.error(err);
+            errorBox.textContent = 'Erro ao processar imagem.';
+            errorBox.classList.add('show');
+          });
+      }
+
+      portionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          portionBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedPortion = btn.dataset.portion;
+        });
+      });
+
+      analyzeBtn.addEventListener('click', async () => {
+        if (!base64Image) return;
+
+        analyzeBtn.disabled = true;
+        spinner.classList.add('show');
+        resultBox.classList.remove('show');
+        errorBox.classList.remove('show');
+
+        try {
+          const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              imageBase64: base64Image, 
+              mimeType: 'image/jpeg',
+              portion: selectedPortion
+            }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Erro');
+
+          if (data.analysis && typeof data.analysis === 'object') {
+            const analysis = {
+              ...data.analysis,
+              porcao: data.analysis.porcao || selectedPortion,
+              ingredientes: data.analysis.ingredientes || [],
+              alergenios: data.analysis.alergenios || [],
+              timestamp: new Date().toISOString()
+            };
+
+            const saved = await saveAnalysisToSupabase(analysis);
+            
+            if (saved) {
+              userHistory.unshift({
+                id: saved.id,
+                ...analysis
+              });
+              renderHistory();
+              updateDailySummary();
+              updateCharts();
             }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#8b957e' },
-              grid: { color: 'rgba(45, 53, 47, 0.5)' }
-            },
-            x: {
-              ticks: { color: '#8b957e' },
-              grid: { display: false }
-            }
+
+            displayResult(analysis);
           }
+
+          resultBox.classList.add('show');
+          resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (err) {
+          errorBox.textContent = err.message || 'Erro na análise.';
+          errorBox.classList.add('show');
+        } finally {
+          spinner.classList.remove('show');
+          analyzeBtn.disabled = false;
         }
       });
-    }
 
-    // Gráfico 2: Distribuição de Macros (Hoje)
-    const today = new Date().toDateString();
-    const todayAnalyses = userHistory.filter(item => 
-      new Date(item.timestamp).toDateString() === today
-    );
+      function displayResult(item) {
+        const estrelas = '⭐'.repeat(item.confianca || 3) + '☆'.repeat(5 - (item.confianca || 3));
+        const pctCal = Math.round((item.calorias / userGoals.cal) * 100);
+        const pctProt = Math.round((item.proteinas_g / userGoals.prot) * 100);
+        const pctHidr = Math.round((item.hidratos_g / userGoals.hidr) * 100);
+        const pctGord = Math.round((item.gorduras_g / userGoals.gord) * 100);
 
-    const totalProt = todayAnalyses.reduce((sum, item) => sum + (item.proteinas_g || 0), 0);
-    const totalHidr = todayAnalyses.reduce((sum, item) => sum + (item.hidratos_g || 0), 0);
-    const totalGord = todayAnalyses.reduce((sum, item) => sum + (item.gorduras_g || 0), 0);
+        let sourceBadge = '';
+        if (item.fonte_dados === 'openfoodfacts') {
+          sourceBadge = '<div class="source-badge openfoodfacts">✅ Open Food Facts</div>';
+        } else if (item.fonte_dados === 'ia_validada') {
+          sourceBadge = '<div class="source-badge ia-validada">✓ IA Validada</div>';
+        } else {
+          sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
+        }
 
-    if (window.macrosChartInstance) window.macrosChartInstance.destroy();
+        let productInfo = '';
+        if (item.produto_oficial && item.produto_oficial.nome) {
+          productInfo = `
+            <div class="product-info">
+              <div class="product-info-label">📦 Produto Identificado</div>
+              <div class="product-info-name">${item.produto_oficial.nome}</div>
+              ${item.produto_oficial.marca ? `<div class="product-info-brand">${item.produto_oficial.marca}</div>` : ''}
+            </div>
+          `;
+        }
 
-    const ctx2 = document.getElementById('macrosChart');
-    if (ctx2 && (totalProt + totalHidr + totalGord) > 0) {
-      window.macrosChartInstance = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-          labels: ['Proteínas', 'Hidratos', 'Gorduras'],
-          datasets: [{
-            data: [totalProt, totalHidr, totalGord],
-            backgroundColor: [
-              'rgba(127, 176, 105, 0.8)',
-              'rgba(159, 213, 135, 0.8)',
-              'rgba(90, 143, 74, 0.8)'
-            ],
-            borderColor: '#242a26',
-            borderWidth: 3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: '#f2efe6', padding: 16 }
+        let ingredientsList = '';
+        if (item.ingredientes && item.ingredientes.length > 0) {
+          ingredientsList = `
+            <div class="ingredients-list">
+              <div class="ingredients-title">Ingredientes Identificados</div>
+              ${item.ingredientes.map(ing => `
+                <div class="ingredient-item">
+                  <div>
+                    <div class="ingredient-name">${ing.nome}</div>
+                    <div class="ingredient-details">${ing.peso_g}g</div>
+                  </div>
+                  <div class="ingredient-calories">${ing.calorias} kcal</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        let allergensBox = '';
+        if (item.alergenios && item.alergenios.length > 0) {
+          const alergenosNomes = {
+            'gluten': 'Glúten',
+            'lactose': 'Lactose',
+            'frutos_secos': 'Frutos Secos',
+            'marisco': 'Marisco',
+            'soja': 'Soja',
+            'ovos': 'Ovos'
+          };
+          const lista = item.alergenios.map(a => alergenosNomes[a] || a).join(', ');
+          allergensBox = `
+            <div class="allergens-box">
+              <span class="allergens-label">⚠️ Alergénios Detetados</span>
+              ${lista}
+            </div>
+          `;
+        }
+
+        const porcaoLabel = {
+          'pequena': '🥣 Pequena',
+          'media': '🥗 Média',
+          'grande': '🍲 Grande'
+        }[item.porcao || 'media'] || '🥗 Média';
+
+        resultBox.innerHTML = `
+          ${sourceBadge}
+          ${productInfo}
+          <div class="result-title">
+            ${item.descricao || 'Refeição'}
+            <span class="portion-badge">${porcaoLabel}</span>
+          </div>
+          <div class="confidence-bar">
+            <span class="confidence-label">Confiança:</span>
+            <span class="confidence-stars">${estrelas}</span>
+          </div>
+          ${allergensBox}
+          ${ingredientsList}
+          <div class="calories-highlight">
+            <div class="calories-label">Total de Calorias</div>
+            <div class="calories-value">${item.calorias}<span class="calories-unit">kcal</span></div>
+            <div class="calories-percent">${pctCal}% do objetivo (${userGoals.cal} kcal)</div>
+          </div>
+          <div class="macros-grid">
+            <div class="macro-item">
+              <div class="macro-label">🥩 Proteínas</div>
+              <div class="macro-value">${item.proteinas_g}<span class="macro-unit">g</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% objetivo</div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">🍞 Hidratos</div>
+              <div class="macro-value">${item.hidratos_g}<span class="macro-unit">g</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% objetivo</div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">🥑 Gorduras</div>
+              <div class="macro-value">${item.gorduras_g}<span class="macro-unit">g</span></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctGord}% objetivo</div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-label">⚡ Energia</div>
+              <div class="macro-value">${Math.round(item.calorias * 4.184)}<span class="macro-unit">kJ</span></div>
+            </div>
+          </div>
+          ${item.sugestao ? `<div class="suggestion-box"><span class="suggestion-label">💡 Sugestão</span>${item.sugestao}</div>` : ''}
+        `;
+      }
+
+      // ============================================
+      // RESUMO DIÁRIO
+      // ============================================
+      function updateDailySummary() {
+        const today = new Date().toDateString();
+        
+        const todayAnalyses = userHistory.filter(item => {
+          const itemDate = new Date(item.timestamp).toDateString();
+          return itemDate === today;
+        });
+
+        if (todayAnalyses.length === 0) {
+          document.getElementById('dailySummary').style.display = 'none';
+          return;
+        }
+
+        let totalCal = 0, totalProt = 0, totalHidr = 0, totalGord = 0;
+        todayAnalyses.forEach(item => {
+          totalCal += item.calorias || 0;
+          totalProt += item.proteinas_g || 0;
+          totalHidr += item.hidratos_g || 0;
+          totalGord += item.gorduras_g || 0;
+        });
+
+        document.getElementById('dailySummary').style.display = 'block';
+        document.getElementById('dailyDate').textContent = new Date().toLocaleDateString('pt-PT', { 
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'long' 
+        });
+        document.getElementById('sumCal').textContent = totalCal;
+        document.getElementById('sumProt').textContent = totalProt + 'g';
+        document.getElementById('sumHidr').textContent = totalHidr + 'g';
+        document.getElementById('sumGord').textContent = totalGord + 'g';
+
+        const percentage = Math.min(Math.round((totalCal / userGoals.cal) * 100), 100);
+        document.getElementById('progressText').textContent = percentage + '%';
+        document.getElementById('progressBar').style.width = percentage + '%';
+        document.getElementById('goalCalDisplay').textContent = '/ ' + userGoals.cal;
+        
+        const bar = document.getElementById('progressBar');
+        if (totalCal > userGoals.cal) {
+          bar.classList.add('warning');
+        } else {
+          bar.classList.remove('warning');
+        }
+      }
+
+      window.toggleGoalsEdit = function() {
+        const editDiv = document.getElementById('goalsEdit');
+        editDiv.style.display = editDiv.style.display === 'none' ? 'block' : 'none';
+      };
+
+      // ============================================
+      // GRÁFICOS
+      // ============================================
+      function updateCharts() {
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dayStr = date.toDateString();
+          
+          const dayCalories = userHistory
+            .filter(item => new Date(item.timestamp).toDateString() === dayStr)
+            .reduce((sum, item) => sum + (item.calorias || 0), 0);
+          
+          last7Days.push({
+            label: date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' }),
+            calories: dayCalories
+          });
+        }
+
+        if (window.caloriesChartInstance) window.caloriesChartInstance.destroy();
+
+        const ctx1 = document.getElementById('caloriesChart');
+        if (ctx1) {
+          window.caloriesChartInstance = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+              labels: last7Days.map(d => d.label),
+              datasets: [{
+                label: 'Calorias',
+                data: last7Days.map(d => d.calories),
+                backgroundColor: 'rgba(127, 176, 105, 0.6)',
+                borderColor: 'rgba(127, 176, 105, 1)',
+                borderWidth: 2,
+                borderRadius: 8
+              }]
             },
-            tooltip: {
-              backgroundColor: 'rgba(26, 31, 27, 0.95)',
-              titleColor: '#f2efe6',
-              bodyColor: '#f2efe6',
-              borderColor: '#7fb069',
-              borderWidth: 1,
-              callbacks: {
-                label: (context) => `${context.label}: ${context.parsed}g`
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: 'rgba(26, 31, 27, 0.95)',
+                  titleColor: '#f2efe6',
+                  bodyColor: '#f2efe6',
+                  borderColor: '#7fb069',
+                  borderWidth: 1
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { color: '#8b957e' },
+                  grid: { color: 'rgba(45, 53, 47, 0.5)' }
+                },
+                x: {
+                  ticks: { color: '#8b957e' },
+                  grid: { display: false }
+                }
               }
             }
-          }
+          });
+        }
+
+        const today = new Date().toDateString();
+        const todayAnalyses = userHistory.filter(item => 
+          new Date(item.timestamp).toDateString() === today
+        );
+
+        const totalProt = todayAnalyses.reduce((sum, item) => sum + (item.proteinas_g || 0), 0);
+        const totalHidr = todayAnalyses.reduce((sum, item) => sum + (item.hidratos_g || 0), 0);
+        const totalGord = todayAnalyses.reduce((sum, item) => sum + (item.gorduras_g || 0), 0);
+
+        if (window.macrosChartInstance) window.macrosChartInstance.destroy();
+
+        const ctx2 = document.getElementById('macrosChart');
+        if (ctx2 && (totalProt + totalHidr + totalGord) > 0) {
+          window.macrosChartInstance = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+              labels: ['Proteínas', 'Hidratos', 'Gorduras'],
+              datasets: [{
+                data: [totalProt, totalHidr, totalGord],
+                backgroundColor: [
+                  'rgba(127, 176, 105, 0.8)',
+                  'rgba(159, 213, 135, 0.8)',
+                  'rgba(90, 143, 74, 0.8)'
+                ],
+                borderColor: '#242a26',
+                borderWidth: 3
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: { color: '#f2efe6', padding: 16 }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(26, 31, 27, 0.95)',
+                  titleColor: '#f2efe6',
+                  bodyColor: '#f2efe6',
+                  borderColor: '#7fb069',
+                  borderWidth: 1,
+                  callbacks: {
+                    label: (context) => `${context.label}: ${context.parsed}g`
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // ============================================
+      // EXPORTAR CSV
+      // ============================================
+      window.exportToCSV = function() {
+        if (userHistory.length === 0) {
+          alert('Não há dados para exportar.');
+          return;
+        }
+
+        const headers = ['Data', 'Hora', 'Descrição', 'Calorias', 'Proteínas (g)', 'Hidratos (g)', 'Gorduras (g)', 'Porção', 'Confiança'];
+        
+        const rows = userHistory.map(item => {
+          const date = new Date(item.timestamp);
+          return [
+            date.toLocaleDateString('pt-PT'),
+            date.toLocaleTimeString('pt-PT'),
+            `"${(item.descricao || '').replace(/"/g, '""')}"`,
+            item.calorias || 0,
+            item.proteinas_g || 0,
+            item.hidratos_g || 0,
+            item.gorduras_g || 0,
+            item.porcao || 'média',
+            item.confianca || 3
+          ].join(',');
+        });
+
+        const csv = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `nutri-scan-historico-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+      };
+
+      // ============================================
+      // UI HELPERS
+      // ============================================
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 10);
+      });
+
+      window.toggleMobileMenu = function() {
+        document.getElementById('mobileMenuOverlay').classList.toggle('show');
+        document.getElementById('mobileMenu').classList.toggle('show');
+      };
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const menu = document.getElementById('mobileMenu');
+          if (menu.classList.contains('show')) toggleMobileMenu();
+          
+          const auth = document.getElementById('authOverlay');
+          if (auth.classList.contains('show')) hideAuth();
         }
       });
+
+    } catch (err) {
+      console.error('❌ Erro ao inicializar app:', err);
+      document.getElementById('authBanner').style.display = 'block';
+      document.getElementById('authBanner').innerHTML = `
+        <div class="logo-large">🥗</div>
+        <h2 class="auth-banner-title">Erro de Inicialização</h2>
+        <p class="auth-banner-text">Ocorreu um erro ao carregar a aplicação. Detalhes: ${err.message}</p>
+        <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
+      `;
     }
   }
-
-  // ============================================
-  // EXPORTAR CSV
-  // ============================================
-  function exportToCSV() {
-    if (userHistory.length === 0) {
-      alert('Não há dados para exportar.');
-      return;
-    }
-
-    const headers = ['Data', 'Hora', 'Descrição', 'Calorias', 'Proteínas (g)', 'Hidratos (g)', 'Gorduras (g)', 'Porção', 'Confiança'];
-    
-    const rows = userHistory.map(item => {
-      const date = new Date(item.timestamp);
-      return [
-        date.toLocaleDateString('pt-PT'),
-        date.toLocaleTimeString('pt-PT'),
-        `"${(item.descricao || '').replace(/"/g, '""')}"`,
-        item.calorias || 0,
-        item.proteinas_g || 0,
-        item.hidratos_g || 0,
-        item.gorduras_g || 0,
-        item.porcao || 'média',
-        item.confianca || 3
-      ].join(',');
-    });
-
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `nutri-scan-historico-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-  }
-
-  // ============================================
-  // UI HELPERS
-  // ============================================
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 10);
-  });
-
-  function toggleMobileMenu() {
-    document.getElementById('mobileMenuOverlay').classList.toggle('show');
-    document.getElementById('mobileMenu').classList.toggle('show');
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      const menu = document.getElementById('mobileMenu');
-      if (menu.classList.contains('show')) toggleMobileMenu();
-      
-      const auth = document.getElementById('authOverlay');
-      if (auth.classList.contains('show')) hideAuth();
-    }
-  });
 </script>
-</body>
-</html>
