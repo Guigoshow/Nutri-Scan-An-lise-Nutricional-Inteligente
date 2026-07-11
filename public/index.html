@@ -1235,7 +1235,7 @@
 
   <div class="container" id="mainContainer">
     <div id="authBanner" class="auth-banner">
-      <div class="logo-large">🥗</div>
+      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
       <h2 class="auth-banner-title">Bem-vindo ao Nutri Scan</h2>
       <p class="auth-banner-text">Cria uma conta gratuita para guardar o teu histórico pessoal e acompanhar a tua evolução nutricional.</p>
       <button class="btn" onclick="showAuth()" style="margin-top: 12px;">Entrar / Criar conta</button>
@@ -1490,7 +1490,7 @@
     console.error('❌ Erro: Supabase não foi carregado.');
     document.getElementById('authBanner').style.display = 'block';
     document.getElementById('authBanner').innerHTML = `
-      <div class="logo-large">🥗</div>
+      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
       <h2 class="auth-banner-title">Erro de Conexão</h2>
       <p class="auth-banner-text">Não foi possível carregar o Supabase. Verifica a tua ligação à internet e recarrega a página.</p>
       <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
@@ -2421,7 +2421,7 @@
       console.error('❌ Erro ao inicializar app:', err);
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authBanner').innerHTML = `
-        <div class="logo-large">🥗</div>
+      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
         <h2 class="auth-banner-title">Erro de Inicialização</h2>
         <p class="auth-banner-text">Ocorreu um erro ao carregar a aplicação. Detalhes: ${err.message}</p>
         <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
