@@ -371,27 +371,27 @@
     margin-bottom: 28px;
   }
 
- .logo-large {
-  width: 88px;
-  height: 88px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  font-size: 44px;
-  box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
-  animation: logoFloat 8s ease-in-out infinite;
-  will-change: transform;
-  transform: translateZ(0); /* Força GPU acceleration */
-  backface-visibility: hidden; /* Previne flickering */
-}
+  .logo-large {
+    width: 88px;
+    height: 88px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 44px;
+    box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
+    animation: logoFloat 8s ease-in-out infinite;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
 
-@keyframes logoFloat {
-  0%, 100% { transform: translateZ(0) translateY(0); }
-  50% { transform: translateZ(0) translateY(-2px); }
-}
+  @keyframes logoFloat {
+    0%, 100% { transform: translateZ(0) translateY(0); }
+    50% { transform: translateZ(0) translateY(-2px); }
+  }
 
   .eyebrow {
     font-size: 11px;
@@ -426,6 +426,7 @@
     padding: 24px;
     text-align: center;
     margin-bottom: 24px;
+    display: block !important; /* Garante que aparece sempre */
   }
 
   .auth-banner-title {
@@ -1500,9 +1501,7 @@
       
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log('✅ Cliente Supabase criado');
-      // Mostrar banner imediatamente enquanto verifica sessão
-           document.getElementById('authBanner').style.display = 'block';
-            document.getElementById('authenticatedContent').style.display = 'none';
+
       // ============================================
       // ESTADO GLOBAL
       // ============================================
@@ -1525,32 +1524,32 @@
       const header = document.getElementById('header');
 
       // ============================================
-      // VERIFICAR SESSÃO AO CARREGAR
+      // VERIFICAR SESSÃO IMEDIATAMENTE
       // ============================================
-      document.addEventListener('DOMContentLoaded', async () => {
-        try {
-          console.log('🔍 A verificar sessão...');
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Erro ao verificar sessão:', error);
-            showUnauthenticated();
-            return;
-          }
-          
-          if (session) {
-            console.log('✅ Sessão encontrada:', session.user.email);
-            currentUser = session.user;
-            await onAuthenticated();
-          } else {
-            console.log('ℹ️ Sem sessão ativa');
-            showUnauthenticated();
-          }
-        } catch (err) {
-          console.error('❌ Erro ao carregar sessão:', err);
+      console.log('🔍 A verificar sessão...');
+      
+      // Mostrar banner imediatamente
+      document.getElementById('authBanner').style.display = 'block';
+      document.getElementById('authenticatedContent').style.display = 'none';
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao verificar sessão:', error);
+          showUnauthenticated();
+        } else if (session) {
+          console.log('✅ Sessão encontrada:', session.user.email);
+          currentUser = session.user;
+          await onAuthenticated();
+        } else {
+          console.log('ℹ️ Sem sessão ativa');
           showUnauthenticated();
         }
-      });
+      } catch (err) {
+        console.error('❌ Erro ao carregar sessão:', err);
+        showUnauthenticated();
+      }
 
       // ============================================
       // FUNÇÕES DE AUTENTICAÇÃO
@@ -2485,3 +2484,5 @@
     }
   }
 </script>
+</body>
+</html>
