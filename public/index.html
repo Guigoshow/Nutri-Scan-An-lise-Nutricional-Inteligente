@@ -372,23 +372,23 @@
   }
 
   .logo-large {
-    width: 88px;
-    height: 88px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 44px;
-    box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
-    animation: logoFloat 3s ease-in-out infinite;
-  }
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 44px;
+  box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
+  animation: logoFloat 6s ease-in-out infinite; /* Aumentado de 3s para 6s */
+}
 
-  @keyframes logoFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); } /* Reduzido de -5px para -3px */
+}
 
   .eyebrow {
     font-size: 11px;
