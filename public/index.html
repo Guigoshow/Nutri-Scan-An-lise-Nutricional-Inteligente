@@ -555,142 +555,6 @@
     display: block;
   }
 
-  /* PORTION SELECTOR PROFISSIONAL */
-  .portion-selector {
-    margin-top: 24px;
-    padding: 24px;
-    background: linear-gradient(135deg, var(--card) 0%, rgba(127, 176, 105, 0.05) 100%);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-
-  .portion-label {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .portion-label-icon {
-    font-size: 18px;
-  }
-
-  .portion-description {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-weight: 400;
-  }
-
-  .portion-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-
-  .portion-card {
-    position: relative;
-    padding: 20px 12px;
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: var(--transition);
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .portion-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 0;
-  }
-
-  .portion-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.2);
-  }
-
-  .portion-card.active {
-    border-color: var(--primary);
-    background: rgba(127, 176, 105, 0.1);
-  }
-
-  .portion-card.active::before {
-    opacity: 0.1;
-  }
-
-  .portion-card-content {
-    position: relative;
-    z-index: 1;
-  }
-
-  .portion-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .portion-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-
-  .portion-card.active .portion-name {
-    color: var(--primary-light);
-  }
-
-  .portion-info {
-    font-size: 11px;
-    color: var(--text-muted);
-    line-height: 1.4;
-  }
-
-  .portion-card.active .portion-info {
-    color: var(--text);
-  }
-
-  .portion-indicator {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 20px;
-    height: 20px;
-    background: var(--primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0);
-    transition: all 0.3s;
-  }
-
-  .portion-card.active .portion-indicator {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .portion-indicator::after {
-    content: '✓';
-    color: white;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
   .btn {
     width: 100%;
     padding: 18px 24px;
@@ -1192,7 +1056,6 @@
     .drop-zone { padding: 20px 12px; }
     .drop-zone-full { padding: 24px 16px; }
     .macros-grid { grid-template-columns: 1fr; }
-    .portion-options { grid-template-columns: 1fr; }
     .upload-buttons { grid-template-columns: 1fr; }
     .daily-summary-grid { grid-template-columns: repeat(2, 1fr); }
     .goals-display { grid-template-columns: repeat(2, 1fr); }
@@ -1254,7 +1117,7 @@
           <span>Analisar Refeição</span>
         </a>
         <a href="#graficos" onclick="toggleMobileMenu()">
-          <span>📊</span>
+          <span></span>
           <span>Gráficos</span>
         </a>
         <a href="#historico" onclick="toggleMobileMenu()">
@@ -1330,7 +1193,7 @@
               </div>
               <div class="drop-zone">
                 <input type="file" id="fileInputGallery" accept="image/*" />
-                <span class="drop-icon">🖼️</span>
+                <span class="drop-icon">️</span>
                 <span class="drop-text">
                   <strong>Da galeria</strong>
                   foto existente
@@ -1340,51 +1203,13 @@
 
             <div class="drop-zone-full" id="dropZoneFull">
               <input type="file" id="fileInputFull" accept="image/*" />
-              <span class="drop-icon">📁</span>
+              <span class="drop-icon"></span>
               <span class="drop-text"><strong>Ou arrasta uma imagem para aqui</strong></span>
               <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
             </div>
 
             <div class="preview-container" id="previewContainer">
               <img id="preview" alt="Pré-visualização" />
-            </div>
-          </div>
-
-          <div class="portion-selector">
-            <label class="portion-label">
-              <span class="portion-label-icon">🍽️</span>
-              <div>
-                <div>Tamanho da porção</div>
-                <div class="portion-description">Seleciona o tamanho aproximado da tua refeição</div>
-              </div>
-            </label>
-            <div class="portion-options">
-              <button type="button" class="portion-card" data-portion="pequena">
-                <div class="portion-card-content">
-                  <span class="portion-icon">🥣</span>
-                  <div class="portion-name">Pequena</div>
-                  <div class="portion-info">Aprox. 70%<br/>Refeição ligeira</div>
-                </div>
-                <div class="portion-indicator"></div>
-              </button>
-              
-              <button type="button" class="portion-card active" data-portion="media">
-                <div class="portion-card-content">
-                  <span class="portion-icon">🥗</span>
-                  <div class="portion-name">Média</div>
-                  <div class="portion-info">100%<br/>Porção normal</div>
-                </div>
-                <div class="portion-indicator"></div>
-              </button>
-              
-              <button type="button" class="portion-card" data-portion="grande">
-                <div class="portion-card-content">
-                  <span class="portion-icon">🍲</span>
-                  <div class="portion-name">Grande</div>
-                  <div class="portion-info">Aprox. 140%<br/>Refeição reforçada</div>
-                </div>
-                <div class="portion-indicator"></div>
-              </button>
             </div>
           </div>
 
@@ -1555,7 +1380,7 @@
               </div>
             </li>
             <li>
-              <span class="feature-icon">💡</span>
+              <span class="feature-icon"></span>
               <div class="feature-text">
                 <div class="feature-title">Sugestões Personalizadas</div>
                 <div class="feature-desc">Recebe recomendações para equilibrar a alimentação.</div>
@@ -1572,7 +1397,7 @@
   </div>
 
 <script>
-  console.log('🚀 Nutri Scan - A iniciar...');
+  console.log(' Nutri Scan - A iniciar...');
   
   if (typeof window.supabase === 'undefined') {
     console.error('❌ Erro: Supabase não foi carregado.');
@@ -1600,7 +1425,6 @@
       let userHistory = [];
       let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
       let base64Image = null;
-      let selectedPortion = 'media';
 
       const preview = document.getElementById('preview');
       const previewContainer = document.getElementById('previewContainer');
@@ -1610,7 +1434,6 @@
       const errorBox = document.getElementById('error');
       const historyList = document.getElementById('historyList');
       const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-      const portionBtns = document.querySelectorAll('.portion-card');
       const header = document.getElementById('header');
 
       console.log('🔍 A verificar sessão...');
@@ -2109,14 +1932,6 @@
           });
       }
 
-      portionBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          portionBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedPortion = btn.dataset.portion;
-        });
-      });
-
       analyzeBtn.addEventListener('click', async () => {
         if (!base64Image) return;
 
@@ -2132,7 +1947,7 @@
             body: JSON.stringify({ 
               imageBase64: base64Image, 
               mimeType: 'image/jpeg',
-              portion: selectedPortion
+              portion: 'media' // Porção média por defeito
             }),
           });
 
@@ -2142,7 +1957,7 @@
           if (data.analysis && typeof data.analysis === 'object') {
             const analysis = {
               ...data.analysis,
-              porcao: data.analysis.porcao || selectedPortion,
+              porcao: data.analysis.porcao || 'media',
               ingredientes: data.analysis.ingredientes || [],
               alergenios: data.analysis.alergenios || [],
               timestamp: new Date().toISOString()
@@ -2187,7 +2002,7 @@
         } else if (item.fonte_dados === 'ia_validada') {
           sourceBadge = '<div class="source-badge ia-validada">✓ IA Validada</div>';
         } else {
-          sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
+          sourceBadge = '<div class="source-badge ia-estimativa"> Estimativa IA</div>';
         }
 
         let productInfo = '';
@@ -2242,7 +2057,7 @@
           'pequena': '🥣 Pequena',
           'media': '🥗 Média',
           'grande': '🍲 Grande'
-        }[item.porcao || 'media'] || '🥗 Média';
+        }[item.porcao || 'media'] || ' Média';
 
         resultBox.innerHTML = `
           ${sourceBadge}
@@ -2506,7 +2321,7 @@
       });
 
     } catch (err) {
-      console.error('❌ Erro ao inicializar app:', err);
+      console.error(' Erro ao inicializar app:', err);
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authBanner').innerHTML = `
         <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
