@@ -71,13 +71,8 @@
   .header-logo {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+    object-fit: contain;
+    border-radius: 8px;
   }
 
   .header-title-main {
@@ -155,7 +150,7 @@
     padding: 8px;
   }
 
-    .mobile-menu-overlay {
+  .mobile-menu-overlay {
     display: none;
     position: fixed;
     inset: 0;
@@ -381,24 +376,14 @@
   }
 
   .logo-large {
-    width: 88px;
-    height: 88px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 16px;
     margin: 0 auto 20px;
-    font-size: 44px;
-    box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
-    animation: logoFloat 8s ease-in-out infinite;
-    will-change: transform;
-    backface-visibility: hidden;
-  }
-
-  @keyframes logoFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
+    background: none;
+    box-shadow: none;
+    animation: none;
   }
 
   .eyebrow {
@@ -570,57 +555,140 @@
     display: block;
   }
 
+  /* PORTION SELECTOR PROFISSIONAL */
   .portion-selector {
     margin-top: 24px;
-    padding: 20px;
-    background: var(--card);
+    padding: 24px;
+    background: linear-gradient(135deg, var(--card) 0%, rgba(127, 176, 105, 0.05) 100%);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
   }
 
   .portion-label {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: var(--text);
-    margin-bottom: 12px;
-    display: block;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .portion-label-icon {
+    font-size: 18px;
+  }
+
+  .portion-description {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 400;
   }
 
   .portion-options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 12px;
   }
 
-  .portion-btn {
-    padding: 12px 8px;
+  .portion-card {
+    position: relative;
+    padding: 20px 12px;
     background: var(--surface);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
     text-align: center;
+    overflow: hidden;
   }
 
-  .portion-btn:hover {
+  .portion-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 0;
+  }
+
+  .portion-card:hover {
     border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(127, 176, 105, 0.2);
+  }
+
+  .portion-card.active {
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.1);
+  }
+
+  .portion-card.active::before {
+    opacity: 0.1;
+  }
+
+  .portion-card-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .portion-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .portion-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .portion-card.active .portion-name {
     color: var(--primary-light);
   }
 
-  .portion-btn.active {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    border-color: var(--primary);
-    color: white;
-    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.3);
+  .portion-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
   }
 
-  .portion-btn-icon {
-    display: block;
-    font-size: 20px;
-    margin-bottom: 4px;
+  .portion-card.active .portion-info {
+    color: var(--text);
+  }
+
+  .portion-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s;
+  }
+
+  .portion-card.active .portion-indicator {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .portion-indicator::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
   }
 
   .btn {
@@ -1119,7 +1187,7 @@
     .header-title-sub { display: none; }
     .container { padding: 16px 12px; }
     .card { padding: 24px 16px; }
-    .logo-large { width: 76px; height: 76px; font-size: 38px; }
+    .logo-large { width: 100px; height: 100px; }
     h1 { font-size: 22px; }
     .drop-zone { padding: 20px 12px; }
     .drop-zone-full { padding: 24px 16px; }
@@ -1147,7 +1215,7 @@
 <body>
   <header class="header" id="header">
     <a href="/" class="header-brand">
-      <img src="/logo.png" alt="Nutri Scan" class="header-logo" style="padding: 4px; background: none; box-shadow: none;" />
+      <img src="/logo.png" alt="Nutri Scan" class="header-logo" />
       <div class="header-title">
         <span class="header-title-main">Nutri Scan</span>
         <span class="header-title-sub">Análise Nutricional</span>
@@ -1235,7 +1303,7 @@
 
   <div class="container" id="mainContainer">
     <div id="authBanner" class="auth-banner">
-      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
+      <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
       <h2 class="auth-banner-title">Bem-vindo ao Nutri Scan</h2>
       <p class="auth-banner-text">Cria uma conta gratuita para guardar o teu histórico pessoal e acompanhar a tua evolução nutricional.</p>
       <button class="btn" onclick="showAuth()" style="margin-top: 12px;">Entrar / Criar conta</button>
@@ -1283,19 +1351,39 @@
           </div>
 
           <div class="portion-selector">
-            <label class="portion-label">🍽️ Tamanho da porção:</label>
+            <label class="portion-label">
+              <span class="portion-label-icon">🍽️</span>
+              <div>
+                <div>Tamanho da porção</div>
+                <div class="portion-description">Seleciona o tamanho aproximado da tua refeição</div>
+              </div>
+            </label>
             <div class="portion-options">
-              <button type="button" class="portion-btn" data-portion="pequena">
-                <span class="portion-btn-icon">🥣</span>
-                Pequena
+              <button type="button" class="portion-card" data-portion="pequena">
+                <div class="portion-card-content">
+                  <span class="portion-icon">🥣</span>
+                  <div class="portion-name">Pequena</div>
+                  <div class="portion-info">Aprox. 70%<br/>Refeição ligeira</div>
+                </div>
+                <div class="portion-indicator"></div>
               </button>
-              <button type="button" class="portion-btn active" data-portion="media">
-                <span class="portion-btn-icon">🥗</span>
-                Média
+              
+              <button type="button" class="portion-card active" data-portion="media">
+                <div class="portion-card-content">
+                  <span class="portion-icon">🥗</span>
+                  <div class="portion-name">Média</div>
+                  <div class="portion-info">100%<br/>Porção normal</div>
+                </div>
+                <div class="portion-indicator"></div>
               </button>
-              <button type="button" class="portion-btn" data-portion="grande">
-                <span class="portion-btn-icon">🍲</span>
-                Grande
+              
+              <button type="button" class="portion-card" data-portion="grande">
+                <div class="portion-card-content">
+                  <span class="portion-icon">🍲</span>
+                  <div class="portion-name">Grande</div>
+                  <div class="portion-info">Aprox. 140%<br/>Refeição reforçada</div>
+                </div>
+                <div class="portion-indicator"></div>
               </button>
             </div>
           </div>
@@ -1340,7 +1428,7 @@
         <div class="card">
           <div id="dailySummary" class="daily-summary" style="display: none;">
             <div class="daily-summary-header">
-              <h3 class="daily-summary-title">📅 Resumo de Hoje</h3>
+              <h3 class="daily-summary-title"> Resumo de Hoje</h3>
               <span id="dailyDate" class="daily-summary-date"></span>
             </div>
             
@@ -1422,7 +1510,7 @@
           </div>
 
           <div class="section-title">
-            <span>📋 Histórico</span>
+            <span> Histórico</span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button onclick="exportToCSV()" class="action-btn">📤 Exportar CSV</button>
               <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
@@ -1490,7 +1578,7 @@
     console.error('❌ Erro: Supabase não foi carregado.');
     document.getElementById('authBanner').style.display = 'block';
     document.getElementById('authBanner').innerHTML = `
-      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
+      <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
       <h2 class="auth-banner-title">Erro de Conexão</h2>
       <p class="auth-banner-text">Não foi possível carregar o Supabase. Verifica a tua ligação à internet e recarrega a página.</p>
       <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
@@ -1522,7 +1610,7 @@
       const errorBox = document.getElementById('error');
       const historyList = document.getElementById('historyList');
       const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-      const portionBtns = document.querySelectorAll('.portion-btn');
+      const portionBtns = document.querySelectorAll('.portion-card');
       const header = document.getElementById('header');
 
       console.log('🔍 A verificar sessão...');
@@ -2421,7 +2509,7 @@
       console.error('❌ Erro ao inicializar app:', err);
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authBanner').innerHTML = `
-      <img src="/logo.png" alt="Nutri Scan" class="logo-large" style="padding: 8px; background: none; box-shadow: none; animation: none;" />
+        <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
         <h2 class="auth-banner-title">Erro de Inicialização</h2>
         <p class="auth-banner-text">Ocorreu um erro ao carregar a aplicação. Detalhes: ${err.message}</p>
         <button class="btn" onclick="location.reload()" style="margin-top: 12px;">Recarregar Página</button>
