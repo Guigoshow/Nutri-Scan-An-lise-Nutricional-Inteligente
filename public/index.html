@@ -44,7 +44,6 @@
     overflow-x: hidden;
   }
 
-  /* HEADER */
   .header {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -157,7 +156,6 @@
     padding: 8px;
   }
 
-  /* MOBILE MENU */
   .mobile-menu-overlay {
     display: none;
     position: fixed;
@@ -232,7 +230,6 @@
     color: var(--primary-light);
   }
 
-  /* AUTH MODAL */
   .auth-overlay {
     display: none;
     position: fixed;
@@ -245,9 +242,7 @@
     padding: 20px;
   }
 
-  .auth-overlay.show {
-    display: flex;
-  }
+  .auth-overlay.show { display: flex; }
 
   .auth-modal {
     background: var(--surface);
@@ -258,6 +253,11 @@
     max-width: 400px;
     box-shadow: var(--shadow-lg);
     animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .auth-title {
@@ -343,7 +343,6 @@
 
   .auth-error.show { display: block; }
 
-  /* CONTAINER */
   .container {
     width: 100%;
     max-width: 600px;
@@ -384,13 +383,12 @@
     box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
     animation: logoFloat 8s ease-in-out infinite;
     will-change: transform;
-    transform: translateZ(0);
     backface-visibility: hidden;
   }
 
   @keyframes logoFloat {
-    0%, 100% { transform: translateZ(0) translateY(0); }
-    50% { transform: translateZ(0) translateY(-2px); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
   }
 
   .eyebrow {
@@ -418,7 +416,6 @@
     margin: 0 auto;
   }
 
-  /* AUTH REQUIRED BANNER */
   .auth-banner {
     background: var(--card);
     border: 1px solid var(--border);
@@ -426,7 +423,6 @@
     padding: 24px;
     text-align: center;
     margin-bottom: 24px;
-    display: block !important; /* Garante que aparece sempre */
   }
 
   .auth-banner-title {
@@ -459,7 +455,6 @@
     gap: 12px;
   }
 
-  /* UPLOAD */
   .upload-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -558,11 +553,6 @@
 
   .preview-container.show { display: block; }
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   #preview {
     width: 100%;
     max-height: 320px;
@@ -570,7 +560,6 @@
     display: block;
   }
 
-  /* PORTION SELECTOR */
   .portion-selector {
     margin-top: 24px;
     padding: 20px;
@@ -624,7 +613,6 @@
     margin-bottom: 4px;
   }
 
-  /* BOTÃO */
   .btn {
     width: 100%;
     padding: 18px 24px;
@@ -650,7 +638,6 @@
     cursor: not-allowed;
   }
 
-  /* SPINNER */
   .spinner {
     display: none;
     align-items: center;
@@ -680,7 +667,6 @@
     40% { transform: scale(1); }
   }
 
-  /* RESULTADOS */
   .result {
     display: none;
     margin-top: 28px;
@@ -851,7 +837,6 @@
   .product-info-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .product-info-brand { font-size: 13px; color: var(--text-muted); }
 
-  /* DAILY SUMMARY */
   .daily-summary {
     margin-bottom: 20px;
     padding: 20px;
@@ -910,7 +895,6 @@
     background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
   }
 
-  /* GOALS */
   .goals-section {
     margin-bottom: 20px;
     padding: 20px;
@@ -979,7 +963,6 @@
     cursor: pointer;
   }
 
-  /* CHARTS */
   .chart-container { margin-bottom: 24px; }
   .chart-title { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
 
@@ -990,7 +973,6 @@
     height: 250px;
   }
 
-  /* HISTORY */
   .history-list {
     display: flex;
     flex-direction: column;
@@ -1118,7 +1100,6 @@
     margin-top: 40px;
   }
 
-  /* RESPONSIVE */
   @media (max-width: 640px) {
     :root { --header-height: 56px; }
     body { padding-top: var(--header-height); }
@@ -1154,7 +1135,6 @@
 </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="header" id="header">
     <a href="/" class="header-brand">
       <div class="header-logo">🥗</div>
@@ -1165,13 +1145,13 @@
     </a>
     
     <nav class="header-nav" id="headerNav">
-      <!-- Conteúdo dinâmico (injetado via JS) -->
+      <a href="#sobre">Sobre</a>
+      <button class="header-cta" onclick="showAuth()">Entrar</button>
     </nav>
 
     <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir menu">☰</button>
   </header>
 
-  <!-- MOBILE MENU -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
   <div class="mobile-menu" id="mobileMenu">
     <div class="mobile-menu-header">
@@ -1179,11 +1159,42 @@
       <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
     </div>
     <nav class="mobile-menu-nav" id="mobileMenuNav">
-      <!-- Conteúdo dinâmico -->
+      <div id="mobileMenuDefault">
+        <a href="#sobre" onclick="toggleMobileMenu()">
+          <span>ℹ️</span>
+          <span>Sobre</span>
+        </a>
+        <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
+          <span>🔑</span>
+          <span>Entrar / Criar conta</span>
+        </button>
+      </div>
+      
+      <div id="mobileMenuAuthenticated" style="display: none;">
+        <a href="#analisar" onclick="toggleMobileMenu()">
+          <span>📸</span>
+          <span>Analisar Refeição</span>
+        </a>
+        <a href="#graficos" onclick="toggleMobileMenu()">
+          <span>📊</span>
+          <span>Gráficos</span>
+        </a>
+        <a href="#historico" onclick="toggleMobileMenu()">
+          <span>📋</span>
+          <span>Histórico</span>
+        </a>
+        <a href="#sobre" onclick="toggleMobileMenu()">
+          <span>ℹ️</span>
+          <span>Sobre</span>
+        </a>
+        <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
+          <span>🚪</span>
+          <span>Sair</span>
+        </button>
+      </div>
     </nav>
   </div>
 
-  <!-- AUTH MODAL -->
   <div class="auth-overlay" id="authOverlay">
     <div class="auth-modal">
       <h2 class="auth-title" id="authTitle">Entrar no Nutri Scan</h2>
@@ -1212,9 +1223,7 @@
     </div>
   </div>
 
-  <!-- MAIN -->
   <div class="container" id="mainContainer">
-    <!-- Banner quando não autenticado -->
     <div id="authBanner" class="auth-banner">
       <div class="logo-large">🥗</div>
       <h2 class="auth-banner-title">Bem-vindo ao Nutri Scan</h2>
@@ -1222,9 +1231,7 @@
       <button class="btn" onclick="showAuth()" style="margin-top: 12px;">Entrar / Criar conta</button>
     </div>
 
-    <!-- Conteúdo principal (só aparece autenticado) -->
     <div id="authenticatedContent" style="display: none;">
-      <!-- ANALISAR -->
       <section id="analisar" class="section">
         <div class="card">
           <div class="header-section">
@@ -1299,7 +1306,6 @@
         </div>
       </section>
 
-      <!-- GRÁFICOS -->
       <section id="graficos" class="section">
         <div class="card">
           <h2 class="section-title">📊 Evolução Semanal</h2>
@@ -1320,7 +1326,6 @@
         </div>
       </section>
 
-      <!-- HISTÓRICO -->
       <section id="historico" class="section">
         <div class="card">
           <div id="dailySummary" class="daily-summary" style="display: none;">
@@ -1422,7 +1427,6 @@
         </div>
       </section>
 
-      <!-- SOBRE -->
       <section id="sobre" class="section">
         <div class="card">
           <h2 class="section-title">ℹ️ Sobre o Nutri Scan</h2>
@@ -1470,14 +1474,10 @@
   </div>
 
 <script>
-  // ============================================
-  // VERIFICAÇÃO INICIAL
-  // ============================================
   console.log('🚀 Nutri Scan - A iniciar...');
   
-  // Verificar se o Supabase foi carregado
   if (typeof window.supabase === 'undefined') {
-    console.error('❌ Erro: Supabase não foi carregado. Verifica a tua ligação à internet.');
+    console.error('❌ Erro: Supabase não foi carregado.');
     document.getElementById('authBanner').style.display = 'block';
     document.getElementById('authBanner').innerHTML = `
       <div class="logo-large">🥗</div>
@@ -1490,28 +1490,20 @@
     initApp();
   }
 
-  // ============================================
-  // INICIALIZAÇÃO DA APP
-  // ============================================
   async function initApp() {
     try {
-      // Configurar Supabase
       const SUPABASE_URL = 'https://cviyrelvmbokfxzqkbdj.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aXlyZWx2bWJva2Z4enFrYmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njk2NjMsImV4cCI6MjA5OTM0NTY2M30.mQ1FGNtUlLTS-chxi5GAwDX8A6t9sujpso0WHxIx2g0';
       
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log('✅ Cliente Supabase criado');
 
-      // ============================================
-      // ESTADO GLOBAL
-      // ============================================
       let currentUser = null;
       let userHistory = [];
       let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
       let base64Image = null;
       let selectedPortion = 'media';
 
-      // Elementos DOM
       const preview = document.getElementById('preview');
       const previewContainer = document.getElementById('previewContainer');
       const analyzeBtn = document.getElementById('analyzeBtn');
@@ -1523,12 +1515,8 @@
       const portionBtns = document.querySelectorAll('.portion-btn');
       const header = document.getElementById('header');
 
-      // ============================================
-      // VERIFICAR SESSÃO IMEDIATAMENTE
-      // ============================================
       console.log('🔍 A verificar sessão...');
       
-      // Mostrar banner imediatamente
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authenticatedContent').style.display = 'none';
       
@@ -1551,9 +1539,6 @@
         showUnauthenticated();
       }
 
-      // ============================================
-      // FUNÇÕES DE AUTENTICAÇÃO
-      // ============================================
       window.showAuth = function() {
         document.getElementById('authOverlay').classList.add('show');
         showLogin();
@@ -1688,9 +1673,6 @@
         showUnauthenticated();
       };
 
-      // ============================================
-      // UI: AUTENTICADO vs NÃO AUTENTICADO
-      // ============================================
       function showUnauthenticated() {
         document.getElementById('authenticatedContent').style.display = 'none';
         document.getElementById('authBanner').style.display = 'block';
@@ -1710,7 +1692,8 @@
 
       function updateNavigation() {
         const headerNav = document.getElementById('headerNav');
-        const mobileMenuNav = document.getElementById('mobileMenuNav');
+        const mobileMenuDefault = document.getElementById('mobileMenuDefault');
+        const mobileMenuAuthenticated = document.getElementById('mobileMenuAuthenticated');
 
         if (currentUser) {
           const email = currentUser.email || 'Utilizador';
@@ -1727,50 +1710,23 @@
             <button onclick="handleLogout()">Sair</button>
           `;
 
-          mobileMenuNav.innerHTML = `
-            <a href="#analisar" onclick="toggleMobileMenu()">
-              <span>📸</span>
-              <span>Analisar Refeição</span>
-            </a>
-            <a href="#graficos" onclick="toggleMobileMenu()">
-              <span>📊</span>
-              <span>Gráficos</span>
-            </a>
-            <a href="#historico" onclick="toggleMobileMenu()">
-              <span>📋</span>
-              <span>Histórico</span>
-            </a>
-            <a href="#sobre" onclick="toggleMobileMenu()">
-              <span>ℹ️</span>
-              <span>Sobre</span>
-            </a>
-            <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
-              <span>🚪</span>
-              <span>Sair</span>
-            </button>
-          `;
+          mobileMenuDefault.style.display = 'none';
+          mobileMenuAuthenticated.style.display = 'flex';
+          mobileMenuAuthenticated.style.flexDirection = 'column';
+          mobileMenuAuthenticated.style.gap = '8px';
         } else {
           headerNav.innerHTML = `
             <a href="#sobre">Sobre</a>
             <button class="header-cta" onclick="showAuth()">Entrar</button>
           `;
 
-          mobileMenuNav.innerHTML = `
-            <a href="#sobre" onclick="toggleMobileMenu()">
-              <span>ℹ️</span>
-              <span>Sobre</span>
-            </a>
-            <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
-              <span>🔑</span>
-              <span>Entrar / Criar conta</span>
-            </button>
-          `;
+          mobileMenuDefault.style.display = 'flex';
+          mobileMenuDefault.style.flexDirection = 'column';
+          mobileMenuDefault.style.gap = '8px';
+          mobileMenuAuthenticated.style.display = 'none';
         }
       }
 
-      // ============================================
-      // CARREGAR DADOS DO SUPABASE
-      // ============================================
       async function loadUserHistory() {
         try {
           const { data, error } = await supabase
@@ -1839,9 +1795,6 @@
         }
       }
 
-      // ============================================
-      // GUARDAR NO SUPABASE
-      // ============================================
       async function saveAnalysisToSupabase(analysis) {
         try {
           const { data, error } = await supabase
@@ -1935,9 +1888,6 @@
         }
       };
 
-      // ============================================
-      // RENDERIZAR HISTÓRICO
-      // ============================================
       function renderHistory() {
         if (userHistory.length === 0) {
           historyList.innerHTML = `
@@ -1983,9 +1933,6 @@
         document.getElementById('analisar').scrollIntoView({ behavior: 'smooth' });
       };
 
-      // ============================================
-      // UPLOAD E ANÁLISE
-      // ============================================
       function compressImage(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -2242,9 +2189,6 @@
         `;
       }
 
-      // ============================================
-      // RESUMO DIÁRIO
-      // ============================================
       function updateDailySummary() {
         const today = new Date().toDateString();
         
@@ -2295,9 +2239,6 @@
         editDiv.style.display = editDiv.style.display === 'none' ? 'block' : 'none';
       };
 
-      // ============================================
-      // GRÁFICOS
-      // ============================================
       function updateCharts() {
         const last7Days = [];
         for (let i = 6; i >= 0; i--) {
@@ -2412,9 +2353,6 @@
         }
       }
 
-      // ============================================
-      // EXPORTAR CSV
-      // ============================================
       window.exportToCSV = function() {
         if (userHistory.length === 0) {
           alert('Não há dados para exportar.');
@@ -2450,9 +2388,6 @@
         URL.revokeObjectURL(url);
       };
 
-      // ============================================
-      // UI HELPERS
-      // ============================================
       window.addEventListener('scroll', () => {
         header.classList.toggle('scrolled', window.scrollY > 10);
       });
