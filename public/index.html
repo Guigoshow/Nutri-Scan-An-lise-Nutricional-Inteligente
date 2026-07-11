@@ -371,7 +371,7 @@
     margin-bottom: 28px;
   }
 
-  .logo-large {
+ .logo-large {
   width: 88px;
   height: 88px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
@@ -382,12 +382,15 @@
   margin: 0 auto 20px;
   font-size: 44px;
   box-shadow: 0 4px 20px rgba(127, 176, 105, 0.3);
-  animation: logoFloat 6s ease-in-out infinite; /* Aumentado de 3s para 6s */
+  animation: logoFloat 8s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0); /* Força GPU acceleration */
+  backface-visibility: hidden; /* Previne flickering */
 }
 
 @keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); } /* Reduzido de -5px para -3px */
+  0%, 100% { transform: translateZ(0) translateY(0); }
+  50% { transform: translateZ(0) translateY(-2px); }
 }
 
   .eyebrow {
