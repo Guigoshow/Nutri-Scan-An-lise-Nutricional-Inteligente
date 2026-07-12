@@ -8,7 +8,7 @@
 <title>Nutri Scan — Análise Nutricional Inteligente</title>
 <link rel="icon" type="image/png" href="/logo.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<!-- Script único e corrigido para o scanner -->
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
   :root {
@@ -557,6 +557,32 @@
     display: block;
   }
 
+  /* NOVA ORDEM: Botão Analisar vem antes do Scanner */
+  .btn {
+    width: 100%;
+    padding: 18px 24px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
+    margin-top: 24px;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .barcode-section {
     margin-top: 24px;
     padding: 24px;
@@ -664,31 +690,6 @@
 
   .barcode-close:hover {
     background: var(--card);
-  }
-
-  .btn {
-    width: 100%;
-    padding: 18px 24px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-    box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
-    margin-top: 24px;
-  }
-
-  .btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   .spinner {
@@ -1394,7 +1395,7 @@
       
       <div id="mobileMenuAuthenticated" style="display: none;">
         <a href="#analisar" onclick="toggleMobileMenu()">
-          <span>📸</span>
+          <span></span>
           <span>Analisar Refeição</span>
         </a>
         <a href="#graficos" onclick="toggleMobileMenu()">
@@ -1402,7 +1403,7 @@
           <span>Gráficos</span>
         </a>
         <a href="#historico" onclick="toggleMobileMenu()">
-          <span>📋</span>
+          <span></span>
           <span>Histórico</span>
         </a>
         <a href="#sobre" onclick="toggleMobileMenu()">
@@ -1410,7 +1411,7 @@
           <span>Sobre</span>
         </a>
         <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
-          <span>🚪</span>
+          <span></span>
           <span>Sair</span>
         </button>
       </div>
@@ -1495,7 +1496,7 @@
           </div>
           
           <div class="feature-preview-card">
-            <span class="feature-preview-icon">📱</span>
+            <span class="feature-preview-icon"></span>
             <h4>Scanner rápido</h4>
             <p>Lê códigos de barras e obtém dados nutricionais oficiais em segundos</p>
           </div>
@@ -1536,7 +1537,7 @@
               </div>
               <div class="drop-zone">
                 <input type="file" id="fileInputGallery" accept="image/*" />
-                <span class="drop-icon">️</span>
+                <span class="drop-icon">🖼️</span>
                 <span class="drop-text">
                   <strong>Da galeria</strong>
                   foto existente
@@ -1556,9 +1557,25 @@
             </div>
           </div>
 
+          <!-- BOTÃO ANALISAR AGORA VEM PRIMEIRO -->
+          <button class="btn" id="analyzeBtn" disabled>
+            <span>Analisar refeição</span>
+          </button>
+
+          <div class="spinner" id="spinner">
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <span>A analisar...</span>
+          </div>
+
+          <div class="error" id="error"></div>
+          <div class="result" id="result"></div>
+
+          <!-- SCANNER DE CÓDIGO DE BARRAS AGORA VEM DEPOIS -->
           <div class="barcode-section">
             <div class="barcode-title">
-              <span></span>
+              <span>📱</span>
               <span>Scanner de Código de Barras</span>
             </div>
             
@@ -1584,20 +1601,6 @@
               Fechar scanner
             </button>
           </div>
-
-          <button class="btn" id="analyzeBtn" disabled>
-            <span>Analisar refeição</span>
-          </button>
-
-          <div class="spinner" id="spinner">
-            <div class="spinner-dot"></div>
-            <div class="spinner-dot"></div>
-            <div class="spinner-dot"></div>
-            <span>A analisar...</span>
-          </div>
-
-          <div class="error" id="error"></div>
-          <div class="result" id="result"></div>
         </div>
       </section>
 
@@ -1707,7 +1710,7 @@
           </div>
 
           <div class="section-title">
-            <span>📋 Histórico</span>
+            <span> Histórico</span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button onclick="exportToCSV()" class="action-btn">📤 Exportar CSV</button>
               <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
@@ -1872,17 +1875,25 @@
       };
 
       window.startBarcodeScanner = function() {
+        // Proteção contra erro se elemento não existir
+        const readerEl = document.getElementById('barcode-reader');
+        if (!readerEl) return;
+
         if (barcodeMode === 'gallery') {
           document.getElementById('barcodeGalleryInput').click();
           return;
         }
         
-        const barcodeReader = document.getElementById('barcode-reader');
         const barcodeCloseBtn = document.getElementById('barcodeCloseBtn');
         
-        barcodeReader.classList.add('show');
+        readerEl.classList.add('show');
         barcodeCloseBtn.style.display = 'block';
         
+        // Limpar instância anterior se existir
+        if (html5QrcodeScanner) {
+          html5QrcodeScanner.clear().catch(() => {});
+        }
+
         html5QrcodeScanner = new Html5Qrcode("barcode-reader");
         
         const config = { 
@@ -1937,15 +1948,25 @@
       };
 
       async function decodeBarcodeFromImage(base64) {
-        return new Promise((resolve, reject) => {
-          const html5QrCode = new Html5Qrcode("barcode-reader");
+        // Proteção: criar elemento temporário se necessário ou usar existente
+        const tempId = 'temp-barcode-reader';
+        let container = document.getElementById(tempId);
+        if (!container) {
+          container = document.createElement('div');
+          container.id = tempId;
+          container.style.display = 'none';
+          document.body.appendChild(container);
+        }
+
+        return new Promise((resolve) => {
+          const html5QrCode = new Html5Qrcode(tempId);
           
           html5QrCode.scanFile(base64, true)
             .then(decodedText => {
               html5QrCode.clear();
               resolve(decodedText);
             })
-            .catch(err => {
+            .catch(() => {
               html5QrCode.clear();
               resolve(null);
             });
@@ -2025,8 +2046,10 @@
           });
         }
         
-        document.getElementById('barcode-reader').classList.remove('show');
-        document.getElementById('barcodeCloseBtn').style.display = 'none';
+        const readerEl = document.getElementById('barcode-reader');
+        const closeBtn = document.getElementById('barcodeCloseBtn');
+        if (readerEl) readerEl.classList.remove('show');
+        if (closeBtn) closeBtn.style.display = 'none';
       };
 
       async function onScanSuccess(decodedText, decodedResult) {
@@ -2407,7 +2430,7 @@
         if (userHistory.length === 0) {
           historyList.innerHTML = `
             <div class="empty-state">
-              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-icon"></div>
               <div>Ainda não analisaste nenhuma refeição.</div>
             </div>
           `;
@@ -2431,7 +2454,7 @@
               <div class="history-item-macros">
                 <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong></span>
                 <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
-                <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
+                <span class="history-item-macro"> <strong>${item.gorduras_g}g</strong></span>
               </div>
               <div class="history-item-calories">🔥 ${item.calorias} kcal</div>
             </div>
@@ -2596,7 +2619,7 @@
         } else if (item.fonte_dados === 'ia_validada') {
           sourceBadge = '<div class="source-badge ia-validada">✓ IA Validada</div>';
         } else {
-          sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
+          sourceBadge = '<div class="source-badge ia-estimativa"> Estimativa IA</div>';
         }
 
         let productInfo = '';
@@ -2679,7 +2702,7 @@
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctProt}% objetivo</div>
             </div>
             <div class="macro-item">
-              <div class="macro-label">🍞 Hidratos</div>
+              <div class="macro-label"> Hidratos</div>
               <div class="macro-value">${item.hidratos_g}<span class="macro-unit">g</span></div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${pctHidr}% objetivo</div>
             </div>
@@ -2920,7 +2943,7 @@
       });
 
     } catch (err) {
-      console.error('❌ Erro ao inicializar app:', err);
+      console.error(' Erro ao inicializar app:', err);
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authBanner').innerHTML = `
         <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
