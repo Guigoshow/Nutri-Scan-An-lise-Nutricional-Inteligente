@@ -1,65 +1,55 @@
-# Nutri Scan — Protótipo Web
+# 🥗 Nutri Scan - Análise Nutricional Inteligente
 
-Site simples: envias uma foto de uma refeição, o Gemini analisa e devolve calorias/macros estimados.
+![Nutri Scan](https://img.shields.io/badge/status-online-success)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Supabase](https://img.shields.io/badge/Supabase-Auth-3ecf8e)
+![Groq](https://img.shields.io/badge/Groq-AI-orange)
 
-## Estrutura
+Aplicação web de análise nutricional que utiliza **inteligência artificial** para identificar alimentos através de fotos e códigos de barras, fornecendo informação detalhada sobre calorias, macronutrientes e alergénios.
 
-```
-nutri-web/
-├── public/
-│   └── index.html      ← página com upload de foto
-├── api/
-│   └── analyze.js       ← função serverless que chama o Gemini
-└── package.json
-```
+## 🚀 Funcionalidades
 
-## Passo 1 — Obter a chave do Groq
+### Análise Inteligente
+- 📸 **Análise por foto**: Tira uma foto da refeição e a IA identifica automaticamente os alimentos
+- 📊 **Scanner de código de barras**: Lê códigos de barras em tempo real ou a partir de imagem
+- 🎯 **Estimativa precisa**: Cálculo de calorias, proteínas, hidratos e gorduras
+- ⚠️ **Deteção de alergénios**: Identifica automaticamente alergénios presentes
 
-1. Vai a [console.groq.com](https://console.groq.com)
-2. Regista-te (email ou conta Google, sem cartão de crédito)
-3. Vai a **API Keys** → **Create API Key**
-4. Guarda essa chave
+### Gestão de Dados
+- 👤 **Autenticação segura**: Sistema de login com Supabase Auth
+- 📈 **Histórico pessoal**: Guarda todas as análises realizadas
+- 🎯 **Objetivos diários**: Define metas calóricas e acompanha o progresso
+- 📊 **Gráficos evolutivos**: Visualiza a evolução semanal de calorias e macros
 
-## Passo 2 — Deploy no Vercel
+### Integração com Bases de Dados
+- ✅ **Open Food Facts**: Validação de produtos embalados com base de dados oficial
+- 🤖 **IA Groq (Qwen 3.6)**: Análise avançada de imagens com modelo de última geração
+- 🔒 **Consensus de 3 análises**: Validação cruzada para maior precisão
 
-1. Cria um repositório no GitHub e faz push desta pasta (`nutri-web`)
-2. Vai a [vercel.com](https://vercel.com) → **Add New Project** → importa o repositório
-3. Não precisas de mudar nenhuma definição de build — o Vercel deteta automaticamente a pasta `public/` e `api/`
-4. Antes do deploy (ou depois, em **Settings → Environment Variables**), adiciona:
+## 🛠️ Tecnologias
 
-   | Nome | Valor |
-   |---|---|
-   | `GROQ_API_KEY` | a chave que criaste no passo 1 |
+- **Frontend**: Next.js 14, React, HTML5, CSS3
+- **Backend**: Next.js API Routes
+- **Base de Dados**: Supabase (PostgreSQL)
+- **Autenticação**: Supabase Auth
+- **IA**: Groq API (Qwen 3.6 27B)
+- **Scanner**: html5-qrcode
+- **Gráficos**: Chart.js
+- **Deploy**: Vercel
 
-5. Se adicionares a variável depois do primeiro deploy, faz **Redeploy** para ficar ativa.
-
-## Passo 3 — Testar
-
-1. Abre o URL que o Vercel te dá (ex: `https://o-teu-projeto.vercel.app`)
-2. Escolhe ou tira uma foto de uma refeição
-3. Clica em **Analisar refeição**
-4. Em poucos segundos aparece a análise (o que identifica, calorias, macros)
-
-## Testar localmente (opcional)
-
-Se tiveres o Vercel CLI instalado (`npm i -g vercel`):
+## 📦 Instalação
 
 ```bash
-vercel dev
-```
+# Clonar o repositório
+git clone https://github.com/SEU-USERNAME/nutri-scan.git
+cd nutri-scan
 
-Isto corre o site e as funções localmente. Precisas de criar um ficheiro `.env.local` com:
+# Instalar dependências
+npm install
 
-```
-GROQ_API_KEY=a_tua_chave_aqui
-```
+# Configurar variáveis de ambiente
+cp .env.example .env.local
+# Edita .env.local com as tuas chaves
 
-## Nota sobre o modelo
-
-Este protótipo usa o **Qwen 3.6 27B** (via Groq), atualmente o modelo com visão disponível na Groq — está em preview (a Groq troca modelos de visão com frequência). Se no futuro este deixar de funcionar, confirma o modelo de visão atual em [console.groq.com/docs/vision](https://console.groq.com/docs/vision) e troca a linha `model:` no `api/analyze.js`. Se notares respostas inconsistentes, também podes trocar para um modelo mais maduro (ex: Gemini).
-
-## Próximos passos (depois de validado)
-
-- Cruzar os resultados da IA com a base de dados do **Open Food Facts** para maior precisão
-- Guardar histórico de análises (precisa de base de dados — Supabase, por exemplo)
-- Passar de site para WhatsApp (Twilio), quando quiseres testar a experiência real com um nutricionista
+# Iniciar servidor de desenvolvimento
+npm run dev
