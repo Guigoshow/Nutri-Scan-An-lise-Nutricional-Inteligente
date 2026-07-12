@@ -8,6 +8,7 @@
 <title>Nutri Scan — Análise Nutricional Inteligente</title>
 <link rel="icon" type="image/png" href="/logo.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
   :root {
     --bg: #0f1410;
@@ -553,6 +554,82 @@
     max-height: 320px;
     object-fit: cover;
     display: block;
+  }
+
+  /* BARCODE SCANNER STYLES */
+  .barcode-section {
+    margin-top: 24px;
+    padding: 24px;
+    background: linear-gradient(135deg, var(--card) 0%, rgba(127, 176, 105, 0.05) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .barcode-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .barcode-scanner-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(127, 176, 105, 0.3);
+  }
+
+  .barcode-scanner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
+  }
+
+  .barcode-scanner-icon {
+    font-size: 24px;
+  }
+
+  #barcode-reader {
+    display: none;
+    margin-top: 16px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  #barcode-reader.show {
+    display: block;
+  }
+
+  .barcode-close {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: var(--transition);
+  }
+
+  .barcode-close:hover {
+    background: var(--card);
   }
 
   .btn {
@@ -1102,11 +1179,11 @@
     <nav class="mobile-menu-nav" id="mobileMenuNav">
       <div id="mobileMenuDefault">
         <a href="#sobre" onclick="toggleMobileMenu()">
-          <span>ℹ️</span>
+          <span>️</span>
           <span>Sobre</span>
         </a>
         <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
-          <span>🔑</span>
+          <span></span>
           <span>Entrar / Criar conta</span>
         </button>
       </div>
@@ -1117,7 +1194,7 @@
           <span>Analisar Refeição</span>
         </a>
         <a href="#graficos" onclick="toggleMobileMenu()">
-          <span></span>
+          <span>📊</span>
           <span>Gráficos</span>
         </a>
         <a href="#historico" onclick="toggleMobileMenu()">
@@ -1129,7 +1206,7 @@
           <span>Sobre</span>
         </a>
         <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
-          <span>🚪</span>
+          <span></span>
           <span>Sair</span>
         </button>
       </div>
@@ -1178,7 +1255,7 @@
           <div class="header-section">
             <div class="eyebrow">Nutri Scan</div>
             <h1>O que está no teu prato?</h1>
-            <p class="subtitle">Envia uma foto da refeição e recebe uma estimativa instantânea.</p>
+            <p class="subtitle">Envia uma foto da refeição ou scan do código de barras.</p>
           </div>
 
           <div class="upload-section">
@@ -1192,13 +1269,14 @@
                 </span>
               </div>
               <div class="drop-zone">
-              <input type="file" id="fileInputGallery" accept="image/*" />
-              <span class="drop-icon">🖼️</span>
-              <span class="drop-text">
-                <strong>Da galeria</strong>
-                foto existente
+                <input type="file" id="fileInputGallery" accept="image/*" />
+                <span class="drop-icon">🖼️</span>
+                <span class="drop-text">
+                  <strong>Da galeria</strong>
+                  foto existente
                 </span>
               </div>
+            </div>
 
             <div class="drop-zone-full" id="dropZoneFull">
               <input type="file" id="fileInputFull" accept="image/*" />
@@ -1210,6 +1288,22 @@
             <div class="preview-container" id="previewContainer">
               <img id="preview" alt="Pré-visualização" />
             </div>
+          </div>
+
+          <!-- BARCODE SCANNER SECTION -->
+          <div class="barcode-section">
+            <div class="barcode-title">
+              <span>📱</span>
+              <span>Scanner de Código de Barras</span>
+            </div>
+            <button class="barcode-scanner-btn" onclick="startBarcodeScanner()">
+              <span class="barcode-scanner-icon">📷</span>
+              <span>Escanear código de barras</span>
+            </button>
+            <div id="barcode-reader"></div>
+            <button class="barcode-close" id="barcodeCloseBtn" style="display: none;" onclick="stopBarcodeScanner()">
+              Fechar scanner
+            </button>
           </div>
 
           <button class="btn" id="analyzeBtn" disabled>
@@ -1252,7 +1346,7 @@
         <div class="card">
           <div id="dailySummary" class="daily-summary" style="display: none;">
             <div class="daily-summary-header">
-              <h3 class="daily-summary-title"> Resumo de Hoje</h3>
+              <h3 class="daily-summary-title">📅 Resumo de Hoje</h3>
               <span id="dailyDate" class="daily-summary-date"></span>
             </div>
             
@@ -1287,7 +1381,7 @@
 
           <div class="goals-section">
             <div class="goals-header">
-              <h3 class="goals-title">🎯 Objetivos Diários</h3>
+              <h3 class="goals-title"> Objetivos Diários</h3>
               <button class="goals-edit-btn" onclick="toggleGoalsEdit()">Editar</button>
             </div>
             
@@ -1334,15 +1428,15 @@
           </div>
 
           <div class="section-title">
-            <span> Histórico</span>
+            <span>📋 Histórico</span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button onclick="exportToCSV()" class="action-btn">📤 Exportar CSV</button>
+              <button onclick="exportToCSV()" class="action-btn"> Exportar CSV</button>
               <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
             </div>
           </div>
           <div id="historyList" class="history-list">
             <div class="empty-state">
-              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-icon"></div>
               <div>A carregar o teu histórico...</div>
             </div>
           </div>
@@ -1379,12 +1473,12 @@
               </div>
             </li>
             <li>
-  <span class="feature-icon">💡</span>
-  <div class="feature-text">
-    <div class="feature-title">Sugestões Personalizadas</div>
-    <div class="feature-desc">Recebe recomendações para equilibrar a alimentação.</div>
-  </div>
-</li>
+              <span class="feature-icon">💡</span>
+              <div class="feature-text">
+                <div class="feature-title">Sugestões Personalizadas</div>
+                <div class="feature-desc">Recebe recomendações para equilibrar a alimentação.</div>
+              </div>
+            </li>
           </ul>
         </div>
       </section>
@@ -1424,6 +1518,7 @@
       let userHistory = [];
       let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
       let base64Image = null;
+      let html5QrcodeScanner = null;
 
       const preview = document.getElementById('preview');
       const previewContainer = document.getElementById('previewContainer');
@@ -1457,6 +1552,123 @@
       } catch (err) {
         console.error('❌ Erro ao carregar sessão:', err);
         showUnauthenticated();
+      }
+
+      // BARCODE SCANNER FUNCTIONS
+      window.startBarcodeScanner = function() {
+        const barcodeReader = document.getElementById('barcode-reader');
+        const barcodeCloseBtn = document.getElementById('barcodeCloseBtn');
+        
+        barcodeReader.classList.add('show');
+        barcodeCloseBtn.style.display = 'block';
+        
+        html5QrcodeScanner = new Html5Qrcode("barcode-reader");
+        
+        const config = { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        };
+        
+        html5QrcodeScanner.start(
+          { facingMode: "environment" },
+          config,
+          onScanSuccess,
+          onScanFailure
+        ).catch(err => {
+          console.error("Erro ao iniciar scanner:", err);
+          errorBox.textContent = 'Erro ao aceder à câmara. Verifica as permissões.';
+          errorBox.classList.add('show');
+          stopBarcodeScanner();
+        });
+      };
+
+      window.stopBarcodeScanner = function() {
+        if (html5QrcodeScanner) {
+          html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+          }).catch(err => {
+            console.error("Erro ao parar scanner:", err);
+          });
+        }
+        
+        document.getElementById('barcode-reader').classList.remove('show');
+        document.getElementById('barcodeCloseBtn').style.display = 'none';
+      };
+
+      async function onScanSuccess(decodedText, decodedResult) {
+        console.log(`Código detetado: ${decodedText}`);
+        stopBarcodeScanner();
+        
+        spinner.classList.add('show');
+        errorBox.classList.remove('show');
+        
+        try {
+          // Fetch product data from Open Food Facts
+          const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${decodedText}.json`);
+          const data = await response.json();
+          
+          if (data.status === 1 && data.product) {
+            const product = data.product;
+            
+            // Extract nutritional data
+            const nutrients = product.nutriments || {};
+            const servingSize = product.serving_size || '100g';
+            
+            const analysis = {
+              descricao: product.product_name || 'Produto sem nome',
+              calorias: nutrients['energy-kcal_100g'] || nutrients['energy-kcal_serving'] || 0,
+              proteinas_g: nutrients.proteins_100g || nutrients.proteins_serving || 0,
+              hidratos_g: nutrients.carbohydrates_100g || nutrients.carbohydrates_serving || 0,
+              gorduras_g: nutrients.fat_100g || nutrients.fat_serving || 0,
+              confianca: 5,
+              sugestao: 'Produto identificado na base de dados Open Food Facts',
+              fonte_dados: 'openfoodfacts',
+              produto_oficial: {
+                nome: product.product_name || 'Produto',
+                marca: product.brands || '',
+                codigo: decodedText
+              },
+              ingredientes: [],
+              alergenios: product.allergens_tags || [],
+              porcao: 'media',
+              timestamp: new Date().toISOString(),
+              servingSize: servingSize
+            };
+            
+            // Save to database
+            const saved = await saveAnalysisToSupabase(analysis);
+            
+            if (saved) {
+              userHistory.unshift({
+                id: saved.id,
+                ...analysis
+              });
+              renderHistory();
+              updateDailySummary();
+              updateCharts();
+            }
+            
+            displayResult(analysis);
+            resultBox.classList.add('show');
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            errorBox.textContent = 'Produto não encontrado na base de dados. Tenta outro código.';
+            errorBox.classList.add('show');
+          }
+        } catch (err) {
+          console.error('Erro ao buscar produto:', err);
+          errorBox.textContent = 'Erro ao consultar base de dados. Tenta novamente.';
+          errorBox.classList.add('show');
+        } finally {
+          spinner.classList.remove('show');
+        }
+      }
+
+      function onScanFailure(error) {
+        // Scan failures are expected, just log them
+        // console.warn(`Code scan error = ${error}`);
       }
 
       window.showAuth = function() {
@@ -1834,7 +2046,7 @@
                 <div class="history-item-date">${dateStr} ${timeStr}</div>
               </div>
               <div class="history-item-macros">
-                <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
+                <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong></span>
                 <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
                 <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
               </div>
@@ -2001,7 +2213,7 @@
         } else if (item.fonte_dados === 'ia_validada') {
           sourceBadge = '<div class="source-badge ia-validada">✓ IA Validada</div>';
         } else {
-          sourceBadge = '<div class="source-badge ia-estimativa"> Estimativa IA</div>';
+          sourceBadge = '<div class="source-badge ia-estimativa">🤖 Estimativa IA</div>';
         }
 
         let productInfo = '';
@@ -2011,6 +2223,7 @@
               <div class="product-info-label">📦 Produto Identificado</div>
               <div class="product-info-name">${item.produto_oficial.nome}</div>
               ${item.produto_oficial.marca ? `<div class="product-info-brand">${item.produto_oficial.marca}</div>` : ''}
+              ${item.produto_oficial.codigo ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Código: ${item.produto_oficial.codigo}</div>` : ''}
             </div>
           `;
         }
@@ -2056,7 +2269,7 @@
           'pequena': '🥣 Pequena',
           'media': '🥗 Média',
           'grande': '🍲 Grande'
-        }[item.porcao || 'media'] || ' Média';
+        }[item.porcao || 'media'] || '🥗 Média';
 
         resultBox.innerHTML = `
           ${sourceBadge}
@@ -2316,11 +2529,16 @@
           
           const auth = document.getElementById('authOverlay');
           if (auth.classList.contains('show')) hideAuth();
+          
+          // Also close barcode scanner if open
+          if (html5QrcodeScanner) {
+            stopBarcodeScanner();
+          }
         }
       });
 
     } catch (err) {
-      console.error(' Erro ao inicializar app:', err);
+      console.error('❌ Erro ao inicializar app:', err);
       document.getElementById('authBanner').style.display = 'block';
       document.getElementById('authBanner').innerHTML = `
         <img src="/logo.png" alt="Nutri Scan" class="logo-large" />
