@@ -556,7 +556,6 @@
     display: block;
   }
 
-  /* BARCODE SCANNER STYLES */
   .barcode-section {
     margin-top: 24px;
     padding: 24px;
@@ -1179,11 +1178,11 @@
     <nav class="mobile-menu-nav" id="mobileMenuNav">
       <div id="mobileMenuDefault">
         <a href="#sobre" onclick="toggleMobileMenu()">
-          <span>️</span>
+          <span>ℹ️</span>
           <span>Sobre</span>
         </a>
         <button onclick="showAuth(); toggleMobileMenu();" style="margin-top: 16px;">
-          <span></span>
+          <span>🔑</span>
           <span>Entrar / Criar conta</span>
         </button>
       </div>
@@ -1206,7 +1205,7 @@
           <span>Sobre</span>
         </a>
         <button onclick="handleLogout(); toggleMobileMenu();" style="margin-top: 16px; color: var(--error);">
-          <span></span>
+          <span>🚪</span>
           <span>Sair</span>
         </button>
       </div>
@@ -1280,7 +1279,7 @@
 
             <div class="drop-zone-full" id="dropZoneFull">
               <input type="file" id="fileInputFull" accept="image/*" />
-              <span class="drop-icon"></span>
+              <span class="drop-icon">📁</span>
               <span class="drop-text"><strong>Ou arrasta uma imagem para aqui</strong></span>
               <div class="drop-hint">Funciona com produtos embalados e pratos cozinhados</div>
             </div>
@@ -1290,7 +1289,6 @@
             </div>
           </div>
 
-          <!-- BARCODE SCANNER SECTION -->
           <div class="barcode-section">
             <div class="barcode-title">
               <span>📱</span>
@@ -1381,7 +1379,7 @@
 
           <div class="goals-section">
             <div class="goals-header">
-              <h3 class="goals-title"> Objetivos Diários</h3>
+              <h3 class="goals-title">🎯 Objetivos Diários</h3>
               <button class="goals-edit-btn" onclick="toggleGoalsEdit()">Editar</button>
             </div>
             
@@ -1430,13 +1428,13 @@
           <div class="section-title">
             <span>📋 Histórico</span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button onclick="exportToCSV()" class="action-btn"> Exportar CSV</button>
+              <button onclick="exportToCSV()" class="action-btn">📤 Exportar CSV</button>
               <button class="clear-history-btn" onclick="clearHistory()" style="display:none" id="clearHistoryBtn">Limpar</button>
             </div>
           </div>
           <div id="historyList" class="history-list">
             <div class="empty-state">
-              <div class="empty-state-icon"></div>
+              <div class="empty-state-icon">📭</div>
               <div>A carregar o teu histórico...</div>
             </div>
           </div>
@@ -1490,7 +1488,7 @@
   </div>
 
 <script>
-  console.log(' Nutri Scan - A iniciar...');
+  console.log('🚀 Nutri Scan - A iniciar...');
   
   if (typeof window.supabase === 'undefined') {
     console.error('❌ Erro: Supabase não foi carregado.');
@@ -1530,19 +1528,18 @@
       const clearHistoryBtn = document.getElementById('clearHistoryBtn');
       const header = document.getElementById('header');
 
+      // 🔍 VERIFICAÇÃO INICIAL DE SESSÃO
       console.log('🔍 A verificar sessão...');
-      
-      document.getElementById('authBanner').style.display = 'block';
-      document.getElementById('authenticatedContent').style.display = 'none';
       
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Erro ao verificar sessão:', error);
+          console.error('❌ Erro ao obter sessão:', error);
           showUnauthenticated();
-        } else if (session) {
+        } else if (session && session.user) {
           console.log('✅ Sessão encontrada:', session.user.email);
+          console.log('👤 User ID:', session.user.id);
           currentUser = session.user;
           await onAuthenticated();
         } else {
@@ -1550,9 +1547,36 @@
           showUnauthenticated();
         }
       } catch (err) {
-        console.error('❌ Erro ao carregar sessão:', err);
+        console.error('❌ Erro crítico ao carregar sessão:', err);
         showUnauthenticated();
       }
+
+      // 🔔 LISTENER PARA MUDANÇAS DE AUTENTICAÇÃO EM TEMPO REAL
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔄 Auth state changed:', event);
+        
+        if (event === 'SIGNED_IN' && session && session.user) {
+          console.log('✅ User signed in:', session.user.email);
+          if (!currentUser || currentUser.id !== session.user.id) {
+            currentUser = session.user;
+            await onAuthenticated();
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 User signed out');
+          currentUser = null;
+          userHistory = [];
+          showUnauthenticated();
+        } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+          console.log('🔄 Token refreshed');
+          currentUser = session.user;
+        } else if (event === 'INITIAL_SESSION') {
+          console.log('🔍 Initial session check:', session ? session.user?.email : 'none');
+          if (session && session.user) {
+            currentUser = session.user;
+            await onAuthenticated();
+          }
+        }
+      });
 
       // BARCODE SCANNER FUNCTIONS
       window.startBarcodeScanner = function() {
@@ -1605,14 +1629,11 @@
         errorBox.classList.remove('show');
         
         try {
-          // Fetch product data from Open Food Facts
           const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${decodedText}.json`);
           const data = await response.json();
           
           if (data.status === 1 && data.product) {
             const product = data.product;
-            
-            // Extract nutritional data
             const nutrients = product.nutriments || {};
             const servingSize = product.serving_size || '100g';
             
@@ -1637,7 +1658,6 @@
               servingSize: servingSize
             };
             
-            // Save to database
             const saved = await saveAnalysisToSupabase(analysis);
             
             if (saved) {
@@ -1667,8 +1687,7 @@
       }
 
       function onScanFailure(error) {
-        // Scan failures are expected, just log them
-        // console.warn(`Code scan error = ${error}`);
+        // Silent - expected during scanning
       }
 
       window.showAuth = function() {
@@ -1726,6 +1745,7 @@
             return;
           }
 
+          // O onAuthStateChange vai tratar automaticamente da UI
           currentUser = data.user;
           hideAuth();
           await onAuthenticated();
@@ -1799,27 +1819,38 @@
       };
 
       window.handleLogout = async function() {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch (err) {
+          console.error('Erro ao fazer logout:', err);
+        }
         currentUser = null;
         userHistory = [];
         showUnauthenticated();
       };
 
       function showUnauthenticated() {
+        console.log('🔒 A mostrar tela de autenticação');
         document.getElementById('authenticatedContent').style.display = 'none';
         document.getElementById('authBanner').style.display = 'block';
         updateNavigation();
       }
 
       async function onAuthenticated() {
+        console.log('🎉 A carregar conteúdo autenticado');
         document.getElementById('authenticatedContent').style.display = 'block';
         document.getElementById('authBanner').style.display = 'none';
         
-        await loadUserGoals();
-        await loadUserHistory();
-        updateNavigation();
-        updateDailySummary();
-        updateCharts();
+        try {
+          await loadUserGoals();
+          await loadUserHistory();
+          updateNavigation();
+          updateDailySummary();
+          updateCharts();
+          console.log('✅ Conteúdo autenticado carregado');
+        } catch (err) {
+          console.error('❌ Erro ao carregar dados:', err);
+        }
       }
 
       function updateNavigation() {
@@ -1928,6 +1959,11 @@
       }
 
       async function saveAnalysisToSupabase(analysis) {
+        if (!currentUser || !currentUser.id) {
+          console.error('❌ Sem utilizador autenticado para guardar');
+          return null;
+        }
+        
         try {
           const { data, error } = await supabase
             .from('analyses')
@@ -2046,7 +2082,7 @@
                 <div class="history-item-date">${dateStr} ${timeStr}</div>
               </div>
               <div class="history-item-macros">
-                <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong></span>
+                <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
                 <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
                 <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
               </div>
@@ -2158,7 +2194,7 @@
             body: JSON.stringify({ 
               imageBase64: base64Image, 
               mimeType: 'image/jpeg',
-              portion: 'media' // Porção média por defeito
+              portion: 'media'
             }),
           });
 
@@ -2530,7 +2566,6 @@
           const auth = document.getElementById('authOverlay');
           if (auth.classList.contains('show')) hideAuth();
           
-          // Also close barcode scanner if open
           if (html5QrcodeScanner) {
             stopBarcodeScanner();
           }
