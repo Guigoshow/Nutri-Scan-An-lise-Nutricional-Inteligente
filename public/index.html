@@ -1118,6 +1118,154 @@
     margin-top: 40px;
   }
 
+  /* ✨ NOVAS SECÇÕES: HOW IT WORKS & FEATURES PREVIEW */
+  .how-it-works {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .how-it-works-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .how-it-works-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .steps-container {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .step-card {
+    flex: 1;
+    min-width: 140px;
+    max-width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+    transition: var(--transition);
+  }
+
+  .step-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(127, 176, 105, 0.2);
+  }
+
+  .step-number {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(127, 176, 105, 0.4);
+  }
+
+  .step-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    margin-top: 8px;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .step-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .features-preview {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .features-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .feature-preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px 16px;
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .feature-preview-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.05);
+  }
+
+  .feature-preview-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .feature-preview-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .feature-preview-card p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
   @media (max-width: 640px) {
     :root { --header-height: 56px; }
     body { padding-top: var(--header-height); }
@@ -1136,6 +1284,26 @@
     .daily-summary-grid { grid-template-columns: repeat(2, 1fr); }
     .goals-display { grid-template-columns: repeat(2, 1fr); }
     .goals-edit-grid { grid-template-columns: 1fr; }
+    
+    /* ✨ RESPONSIVE: HOW IT WORKS & FEATURES */
+    .steps-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .step-arrow {
+      transform: rotate(90deg);
+      margin: 4px 0;
+    }
+    
+    .step-card {
+      max-width: 100%;
+      width: 100%;
+    }
+    
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1246,6 +1414,70 @@
       <h2 class="auth-banner-title">Bem-vindo ao Nutri Scan</h2>
       <p class="auth-banner-text">Cria uma conta gratuita para guardar o teu histórico pessoal e acompanhar a tua evolução nutricional.</p>
       <button class="btn" onclick="showAuth()" style="margin-top: 12px;">Entrar / Criar conta</button>
+
+      <!-- ✨ NOVA SECÇÃO: COMO FUNCIONA -->
+      <div class="how-it-works">
+        <h3 class="how-it-works-title">Como funciona?</h3>
+        <p class="how-it-works-subtitle">Em apenas 3 passos simples</p>
+        
+        <div class="steps-container">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon">📸</div>
+            <h4 class="step-title">Tira uma foto</h4>
+            <p class="step-desc">Fotografa a tua refeição ou usa o scanner de código de barras</p>
+          </div>
+          
+          <div class="step-arrow">→</div>
+          
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon">🤖</div>
+            <h4 class="step-title">IA analisa</h4>
+            <p class="step-desc">A nossa inteligência artificial identifica os alimentos e calcula os nutrientes</p>
+          </div>
+          
+          <div class="step-arrow">→</div>
+          
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon">📊</div>
+            <h4 class="step-title">Acompanha</h4>
+            <p class="step-desc">Vê as calorias, macros e evolui ao longo do tempo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✨ NOVA SECÇÃO: FEATURES EM DESTAQUE -->
+      <div class="features-preview">
+        <h3 class="features-title">O que podes fazer</h3>
+        
+        <div class="features-grid">
+          <div class="feature-preview-card">
+            <span class="feature-preview-icon">🎯</span>
+            <h4>Análise precisa</h4>
+            <p>Identificação inteligente de alimentos com validação Open Food Facts</p>
+          </div>
+          
+          <div class="feature-preview-card">
+            <span class="feature-preview-icon">📱</span>
+            <h4>Scanner rápido</h4>
+            <p>Lê códigos de barras e obtém dados nutricionais oficiais em segundos</p>
+          </div>
+          
+          <div class="feature-preview-card">
+            <span class="feature-preview-icon">📈</span>
+            <h4>Gráficos evolutivos</h4>
+            <p>Acompanha a tua ingestão calórica e de macros ao longo da semana</p>
+          </div>
+          
+          <div class="feature-preview-card">
+            <span class="feature-preview-icon">🎯</span>
+            <h4>Objetivos pessoais</h4>
+            <p>Define metas calóricas e acompanha o teu progresso diário</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="authenticatedContent" style="display: none;">
@@ -1528,7 +1760,6 @@
       const clearHistoryBtn = document.getElementById('clearHistoryBtn');
       const header = document.getElementById('header');
 
-      // 🔍 VERIFICAÇÃO INICIAL DE SESSÃO
       console.log('🔍 A verificar sessão...');
       
       try {
@@ -1551,7 +1782,6 @@
         showUnauthenticated();
       }
 
-      // 🔔 LISTENER PARA MUDANÇAS DE AUTENTICAÇÃO EM TEMPO REAL
       supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('🔄 Auth state changed:', event);
         
@@ -1578,7 +1808,6 @@
         }
       });
 
-      // BARCODE SCANNER FUNCTIONS
       window.startBarcodeScanner = function() {
         const barcodeReader = document.getElementById('barcode-reader');
         const barcodeCloseBtn = document.getElementById('barcodeCloseBtn');
@@ -1745,7 +1974,6 @@
             return;
           }
 
-          // O onAuthStateChange vai tratar automaticamente da UI
           currentUser = data.user;
           hideAuth();
           await onAuthenticated();
