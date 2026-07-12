@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" href="/logo.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
   :root {
     --bg: #0f1410;
@@ -574,6 +575,44 @@
     gap: 8px;
   }
 
+  .barcode-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .barcode-btn {
+    padding: 16px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .barcode-btn:hover {
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .barcode-btn.active {
+    border-color: var(--primary);
+    background: rgba(127, 176, 105, 0.1);
+  }
+
+  .barcode-btn-icon {
+    font-size: 28px;
+  }
+
   .barcode-scanner-btn {
     width: 100%;
     padding: 16px;
@@ -595,10 +634,6 @@
   .barcode-scanner-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(127, 176, 105, 0.4);
-  }
-
-  .barcode-scanner-icon {
-    font-size: 24px;
   }
 
   #barcode-reader {
@@ -1118,7 +1153,6 @@
     margin-top: 40px;
   }
 
-  /* ✨ NOVAS SECÇÕES: HOW IT WORKS & FEATURES PREVIEW */
   .how-it-works {
     margin-top: 40px;
     padding-top: 32px;
@@ -1285,7 +1319,6 @@
     .goals-display { grid-template-columns: repeat(2, 1fr); }
     .goals-edit-grid { grid-template-columns: 1fr; }
     
-    /* ✨ RESPONSIVE: HOW IT WORKS & FEATURES */
     .steps-container {
       flex-direction: column;
       align-items: center;
@@ -1302,6 +1335,10 @@
     }
     
     .features-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .barcode-options {
       grid-template-columns: 1fr;
     }
   }
@@ -1415,7 +1452,6 @@
       <p class="auth-banner-text">Cria uma conta gratuita para guardar o teu histórico pessoal e acompanhar a tua evolução nutricional.</p>
       <button class="btn" onclick="showAuth()" style="margin-top: 12px;">Entrar / Criar conta</button>
 
-      <!-- ✨ NOVA SECÇÃO: COMO FUNCIONA -->
       <div class="how-it-works">
         <h3 class="how-it-works-title">Como funciona?</h3>
         <p class="how-it-works-subtitle">Em apenas 3 passos simples</p>
@@ -1448,13 +1484,12 @@
         </div>
       </div>
 
-      <!-- ✨ NOVA SECÇÃO: FEATURES EM DESTAQUE -->
       <div class="features-preview">
         <h3 class="features-title">O que podes fazer</h3>
         
         <div class="features-grid">
           <div class="feature-preview-card">
-            <span class="feature-preview-icon">🎯</span>
+            <span class="feature-preview-icon"></span>
             <h4>Análise precisa</h4>
             <p>Identificação inteligente de alimentos com validação Open Food Facts</p>
           </div>
@@ -1466,13 +1501,13 @@
           </div>
           
           <div class="feature-preview-card">
-            <span class="feature-preview-icon">📈</span>
+            <span class="feature-preview-icon"></span>
             <h4>Gráficos evolutivos</h4>
             <p>Acompanha a tua ingestão calórica e de macros ao longo da semana</p>
           </div>
           
           <div class="feature-preview-card">
-            <span class="feature-preview-icon">🎯</span>
+            <span class="feature-preview-icon"></span>
             <h4>Objetivos pessoais</h4>
             <p>Define metas calóricas e acompanha o teu progresso diário</p>
           </div>
@@ -1501,7 +1536,7 @@
               </div>
               <div class="drop-zone">
                 <input type="file" id="fileInputGallery" accept="image/*" />
-                <span class="drop-icon">🖼️</span>
+                <span class="drop-icon">️</span>
                 <span class="drop-text">
                   <strong>Da galeria</strong>
                   foto existente
@@ -1523,13 +1558,27 @@
 
           <div class="barcode-section">
             <div class="barcode-title">
-              <span>📱</span>
+              <span></span>
               <span>Scanner de Código de Barras</span>
             </div>
-            <button class="barcode-scanner-btn" onclick="startBarcodeScanner()">
-              <span class="barcode-scanner-icon">📷</span>
-              <span>Escanear código de barras</span>
+            
+            <div class="barcode-options">
+              <button class="barcode-btn active" onclick="setBarcodeMode('camera')" id="btnCamera">
+                <span class="barcode-btn-icon">📷</span>
+                <span>Câmara em tempo real</span>
+              </button>
+              <button class="barcode-btn" onclick="setBarcodeMode('gallery')" id="btnGallery">
+                <span class="barcode-btn-icon">🖼️</span>
+                <span>Escolher da galeria</span>
+              </button>
+            </div>
+            
+            <input type="file" id="barcodeGalleryInput" accept="image/*" style="display: none;" onchange="handleBarcodeGalleryImage(event)" />
+            
+            <button class="barcode-scanner-btn" onclick="startBarcodeScanner()" id="startScannerBtn">
+              <span>Iniciar scanner</span>
             </button>
+            
             <div id="barcode-reader"></div>
             <button class="barcode-close" id="barcodeCloseBtn" style="display: none;" onclick="stopBarcodeScanner()">
               Fechar scanner
@@ -1749,6 +1798,7 @@
       let userGoals = { cal: 2000, prot: 150, hidr: 200, gord: 70 };
       let base64Image = null;
       let html5QrcodeScanner = null;
+      let barcodeMode = 'camera';
 
       const preview = document.getElementById('preview');
       const previewContainer = document.getElementById('previewContainer');
@@ -1808,7 +1858,25 @@
         }
       });
 
+      window.setBarcodeMode = function(mode) {
+        barcodeMode = mode;
+        document.getElementById('btnCamera').classList.toggle('active', mode === 'camera');
+        document.getElementById('btnGallery').classList.toggle('active', mode === 'gallery');
+        
+        const scannerBtn = document.getElementById('startScannerBtn');
+        if (mode === 'camera') {
+          scannerBtn.innerHTML = '<span>Iniciar scanner de câmara</span>';
+        } else {
+          scannerBtn.innerHTML = '<span>Escolher imagem da galeria</span>';
+        }
+      };
+
       window.startBarcodeScanner = function() {
+        if (barcodeMode === 'gallery') {
+          document.getElementById('barcodeGalleryInput').click();
+          return;
+        }
+        
         const barcodeReader = document.getElementById('barcode-reader');
         const barcodeCloseBtn = document.getElementById('barcodeCloseBtn');
         
@@ -1836,24 +1904,56 @@
         });
       };
 
-      window.stopBarcodeScanner = function() {
-        if (html5QrcodeScanner) {
-          html5QrcodeScanner.stop().then(() => {
-            html5QrcodeScanner.clear();
-            html5QrcodeScanner = null;
-          }).catch(err => {
-            console.error("Erro ao parar scanner:", err);
-          });
-        }
+      window.handleBarcodeGalleryImage = async function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
         
-        document.getElementById('barcode-reader').classList.remove('show');
-        document.getElementById('barcodeCloseBtn').style.display = 'none';
+        spinner.classList.add('show');
+        errorBox.classList.remove('show');
+        
+        try {
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          
+          const decodedText = await decodeBarcodeFromImage(base64);
+          
+          if (decodedText) {
+            await processBarcodeResult(decodedText);
+          } else {
+            errorBox.textContent = 'Não foi possível detetar um código de barras na imagem.';
+            errorBox.classList.add('show');
+          }
+        } catch (err) {
+          console.error('Erro ao processar imagem:', err);
+          errorBox.textContent = 'Erro ao processar imagem. Tenta novamente.';
+          errorBox.classList.add('show');
+        } finally {
+          spinner.classList.remove('show');
+        }
       };
 
-      async function onScanSuccess(decodedText, decodedResult) {
+      async function decodeBarcodeFromImage(base64) {
+        return new Promise((resolve, reject) => {
+          const html5QrCode = new Html5Qrcode("barcode-reader");
+          
+          html5QrCode.scanFile(base64, true)
+            .then(decodedText => {
+              html5QrCode.clear();
+              resolve(decodedText);
+            })
+            .catch(err => {
+              html5QrCode.clear();
+              resolve(null);
+            });
+        });
+      }
+
+      async function processBarcodeResult(decodedText) {
         console.log(`Código detetado: ${decodedText}`);
-        stopBarcodeScanner();
-        
         spinner.classList.add('show');
         errorBox.classList.remove('show');
         
@@ -1913,6 +2013,25 @@
         } finally {
           spinner.classList.remove('show');
         }
+      }
+
+      window.stopBarcodeScanner = function() {
+        if (html5QrcodeScanner) {
+          html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+          }).catch(err => {
+            console.error("Erro ao parar scanner:", err);
+          });
+        }
+        
+        document.getElementById('barcode-reader').classList.remove('show');
+        document.getElementById('barcodeCloseBtn').style.display = 'none';
+      };
+
+      async function onScanSuccess(decodedText, decodedResult) {
+        stopBarcodeScanner();
+        await processBarcodeResult(decodedText);
       }
 
       function onScanFailure(error) {
@@ -2310,7 +2429,7 @@
                 <div class="history-item-date">${dateStr} ${timeStr}</div>
               </div>
               <div class="history-item-macros">
-                <span class="history-item-macro">🥩 <strong>${item.proteinas_g}g</strong></span>
+                <span class="history-item-macro"> <strong>${item.proteinas_g}g</strong></span>
                 <span class="history-item-macro">🍞 <strong>${item.hidratos_g}g</strong></span>
                 <span class="history-item-macro">🥑 <strong>${item.gorduras_g}g</strong></span>
               </div>
